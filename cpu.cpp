@@ -38,9 +38,9 @@ void CPU::print_state() {
 void CPU::cycle() {
 	word_t cmd = this->fetch();
 
-	this->decode();
+	// this->decode();
 
-	this->execute();
+	// this->execute();
 }
 
 word_t CPU::fetch() const {

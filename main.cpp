@@ -26,13 +26,10 @@ int main() {
 	cpu.memory.load(data, 3);
 
 	for (size_t i=0; i<6; i++) {
-		// std::cout << "I: " << i << int_to_hex<word_t>(cpu.memory.read(i)) << "\n";
 		printf("mem[%d] = 0x%04x \n", i, cpu.memory.read(i));
 	}
 
 	std::cout << "SIZE: " << cpu.memory.get_size() << "\n";
-	
-	cpu.acc.write(10);
 
 	cpu.print_state();
 

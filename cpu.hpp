@@ -5,9 +5,17 @@
 #include "memory.hpp"
 
 class CPU {
-public: // all private?  
+public:
 	CPU(size_t mem_size);
 
+	Memory memory; // memory addrs?
+
+	void reset(); // set registers, flags, memory to zero
+
+	void cycle();
+
+	void print_state();
+private:
 	Register<word_t> acc;
 
 	Register<word_t> pc;
@@ -15,8 +23,6 @@ public: // all private?
 
 	Register<byte_t> mop;
 	Register<word_t> ri, re, r0, r1;
-
-	Memory memory; // memory addrs?
 
 	struct ALU {
 		// flags
@@ -30,15 +36,8 @@ public: // all private?
 		word_t update_flags(word_t value);
 	};
 
-	void reset(); // set registers, flags, memory to zero
-
-	void cycle();
-
-	void print_state();
-private:
 	// TODO
 	word_t fetch() const;
 	void decode();
 	void execute();
-
 };
