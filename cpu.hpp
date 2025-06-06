@@ -32,10 +32,13 @@ public: // all private?
 
 	void reset(); // set registers, flags, memory to zero
 
+	void cycle();
+
+	void print_state();
+private:
 	// TODO
-	void fetch();
+	word_t fetch() const;
 	void decode();
 	void execute();
 
-	void print_state();
 };

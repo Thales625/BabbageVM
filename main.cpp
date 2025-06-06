@@ -27,7 +27,7 @@ int main() {
 
 	for (size_t i=0; i<6; i++) {
 		// std::cout << "I: " << i << int_to_hex<word_t>(cpu.memory.read(i)) << "\n";
-		printf ("mem[%d] = 0x%04x \n", i, cpu.memory.read(i));
+		printf("mem[%d] = 0x%04x \n", i, cpu.memory.read(i));
 	}
 
 	std::cout << "SIZE: " << cpu.memory.get_size() << "\n";

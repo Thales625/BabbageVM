@@ -1,5 +1,6 @@
 #include "cpu.hpp"
 
+// CPU
 CPU::CPU(size_t mem_size) : memory(Memory(mem_size)) {};
 
 void CPU::reset() {
@@ -19,7 +20,34 @@ void CPU::reset() {
 	this->memory.clear();
 }
 
+void CPU::print_state() {
+	printf("CPU STATE\n\t");
+	printf ("acc = 0x%04x\n\t", this->acc);
 
+	printf ("pc = 0x%04x\n\t", this->pc);
+	printf ("sp = 0x%04x\n\t", this->sp);
+	
+	printf ("mop = %04x\n\t", this->mop);
+
+	printf ("ri = 0x%04x\n\t", this->ri);
+	printf ("re = 0x%04x\n\t", this->re);
+	printf ("r0 = 0x%04x\n\t", this->r0);
+	printf ("r1 = 0x%04x\n", this->r1);
+}
+
+void CPU::cycle() {
+	word_t cmd = this->fetch();
+
+	this->decode();
+
+	this->execute();
+}
+
+word_t CPU::fetch() const {
+	return this->memory.read((address_t) this->pc.read());
+}
+
+// ALU
 word_t CPU::ALU::update_flags(word_t value) {
 	this->N = value < 0 ? 1 : 0;
 	this->Z = value == 0 ? 1 : 0;
@@ -42,19 +70,4 @@ word_t CPU::ALU::sub(word_t a, word_t b) {
 
 word_t CPU::ALU::mul(word_t a, word_t b) {
 	return this->update_flags(a * b);
-}
-
-void CPU::print_state() {
-	printf("CPU STATE\n\t");
-	printf ("acc = 0x%04x\n\t", this->acc);
-
-	printf ("pc = 0x%04x\n\t", this->pc);
-	printf ("sp = 0x%04x\n\t", this->sp);
-	
-	printf ("mop = %04x\n\t", this->mop);
-
-	printf ("ri = 0x%04x\n\t", this->ri);
-	printf ("re = 0x%04x\n\t", this->re);
-	printf ("r0 = 0x%04x\n\t", this->r0);
-	printf ("r1 = 0x%04x\n", this->r1);
 }

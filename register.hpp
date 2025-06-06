@@ -9,7 +9,7 @@ public:
 		return this->value;
 	}
 	
-	void write(word_t n_value) {
+	void write(T n_value) {
 		this->value = n_value;
 	}
 private:
