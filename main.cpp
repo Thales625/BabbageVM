@@ -12,19 +12,18 @@ int main() {
 	cpu.reset();
  
 	std::vector<word_t> program = {
-		0x0300, 10, // LOAD mem[10]
-		0x0200, 11, // ADD  mem[11]
-		0x0202, 3,  // ADD  value 3
+		0x0302, 5,  // LOAD 5
+		0x0601, 21, // SUB  mem[mem[21]]
 		0x0b00      // STOP
 	};
 
 	std::vector<word_t> data = {
-		1, // mem[10] = 1
-		33 // mem[11] = 2
+		1,  // mem[20] = 1
+		20, // mem[21] = 20
 	};
 	
 	cpu.memory.load(program, 0);
-	cpu.memory.load(data, 10);
+	cpu.memory.load(data, 20);
 
 	for (size_t i=0; i<15; i++) {
 		printf("mem[%ld] = 0x%04x \n", i, cpu.memory.read(i));

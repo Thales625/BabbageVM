@@ -108,7 +108,7 @@ void CPU::cycle() {
 	}
 
 	// 2 operands
-	AddrMode opd2_addr_mode = decode_mode_opd1(raw_instr);
+	AddrMode opd2_addr_mode = decode_mode_opd2(raw_instr);
 
 	#ifdef DEBUG
 	std::cout << "OPD2 MODE: " << static_cast<int>(opd2_addr_mode) << "(";
@@ -252,5 +252,5 @@ void CPU::i_sub(word_t opd1) {
 	#ifdef DEBUG
 	std::cout << "SUB => opd1: " << opd1 << "\n";
 	#endif
-	this->acc.write(this->alu.add(this->acc.read(), opd1));
+	this->acc.write(this->alu.sub(this->acc.read(), opd1));
 }

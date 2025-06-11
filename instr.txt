@@ -5,16 +5,16 @@
   fedcba9876543210
   OOOOOOOOXXaaXXAA
 
+hex = 0xOOaA
+
 O: opcode
 X: dont care
-a: addrs mode operand1
-A: addrs mode operand2
+A: addrs mode operand1
+a: addrs mode operand2
 
 8-f = opcode (instruction) <byte>
 0-1 = opd1 addrs mode
 4-5 = opd2 addrs mode
-
-hex = 0xOOaA
 
 ex:
 	ADD (opcode=2):
