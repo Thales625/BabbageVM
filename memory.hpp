@@ -18,6 +18,6 @@ public:
 	void load(const std::vector<word_t>& data_vector, address_t start_address);
 	// void append(const std::vector<word_t>& data_vector); // TODO
 private:
-	size_t size;
 	std::vector<word_t> data;
+	size_t size;
 };

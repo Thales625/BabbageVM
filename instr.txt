@@ -1,0 +1,23 @@
+16-bit long opcode <word>
+-------------------------
+
+0b0000000000000000
+  fedcba9876543210
+  OOOOOOOOXXaaXXAA
+
+O: opcode
+X: dont care
+a: addrs mode operand1
+A: addrs mode operand2
+
+8-f = opcode (instruction) <byte>
+0-1 = opd1 addrs mode
+4-5 = opd2 addrs mode
+
+hex = 0xOOaA
+
+ex:
+	ADD (opcode=2):
+		0x0200 # direct mode
+		0x0201 # indirect mode
+		0x0202 # immediate mode
