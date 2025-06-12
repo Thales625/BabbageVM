@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vm_types.hpp"
+#include "register.hpp"
 
 #include <vector>
 #include <stdexcept>

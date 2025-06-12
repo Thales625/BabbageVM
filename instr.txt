@@ -21,3 +21,8 @@ ex:
 		0x0200 # direct mode
 		0x0201 # indirect mode
 		0x0202 # immediate mode
+
+# Mnemonic code
+add $r1   # acc += $r1        # direct
+add ($r1) # acc += mem[$r1]   # indirect
+add imm   # acc += immediate  # immediate

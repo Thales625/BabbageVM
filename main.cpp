@@ -8,37 +8,40 @@
 #include "bitmap.hpp"
 
 int main() {
-	CPU cpu(1024);
+	Memory *mem_ptr = new Memory(1024); // 2kB
+
+	CPU cpu(mem_ptr);
 
 	cpu.reset();
  
 	std::vector<word_t> program = {
-		0x0302, 5,  // LOAD 5
+		0x0302, 1,  // LOAD 1
 		0x0601, 21, // SUB  mem[mem[21]]
 		0x0b00      // STOP
 	};
 
 	std::vector<word_t> data = {
-		1,  // mem[20] = 1
-		20, // mem[21] = 20
+		1, // mem[100]
+		1, // mem[101]
 	};
 	
-	cpu.memory.load(program, 0);
-	cpu.memory.load(data, 20);
-	
+	mem_ptr->load(program, 0);
+	mem_ptr->load(data, 100);
+
 	/*
 	for (size_t i=0; i<15; i++) {
-		printf("mem[%ld] = 0x%04x \n", i, cpu.memory.read(i));
+		printf("mem[%ld] = 0x%04x \n", i, mem_ptr->read(i));
 	}
-	std::cout << "SIZE: " << cpu.memory.get_size() << "\n";
+	std::cout << "SIZE: " << mem_ptr->get_size() << "\n";
 	*/
 
 	// bitmap display
-	BitMap bitmap{&cpu.memory, 100, 5, 5};
+	BitMap bitmap{mem_ptr, 100, 5, 5};
 
 	cpu.run(bitmap);
 
 	cpu.print_state();
 
+	delete mem_ptr;
 	return 0;
 }

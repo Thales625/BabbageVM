@@ -2,44 +2,40 @@
 
 #include "vm_types.hpp"
 #include "register.hpp"
+#include "regfile.hpp"
 #include "memory.hpp"
 #include "utils.hpp"
-#include "alu.hpp"
 #include "bitmap.hpp"
 
 class CPU {
 public:
-	CPU(size_t mem_size);
+	CPU(Memory *n_mem_ptr);
 
-	Memory memory;
+	Memory *mem_ptr;
 
-	void reset(); // set registers, flags, memory to zero
+	void reset(); // set registers, memory to zero
 
 	void run(BitMap &bitmap);
 	void run();
 
 	void cycle();
 
-	void print_state();
+	void print_state() const;
 private:
 	bool running;
 
-	Register<word_t> acc;
+	RegisterFile<word_t> reg_file;
 
-	Register<word_t> pc;
-	Register<word_t> sp;
+	Register<word_t> *acc, *pc, *sp, *r0, *r1;
 
+	Register<word_t> ri, re;
 	Register<byte_t> mop;
-	Register<word_t> ri, re, r0, r1;
-
-	ALU alu;
 
 	// instructions
 
 	// 0 op
 	void i_ret();
 	void i_stop();
-	void i_pop();
 
 	// 1 op
 	void i_add(word_t opd1);
@@ -54,7 +50,9 @@ private:
 	void i_push(word_t opd1);
 	void i_store(word_t opd1);
 	void i_sub(word_t opd1);
+	void i_pop(word_t opd1);
 
 	// 2 op
-	void i_copy(word_t opd1, word_t opd2);
+	void i_copy_r(word_t opd1, word_t opd2);
+	void i_copy_m(word_t opd1, word_t opd2);
 };

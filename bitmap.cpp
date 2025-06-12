@@ -12,9 +12,10 @@ void BitMap::show() {
 	std::cout << "BitMap Display\n";
 
 	for (size_t j=0; j<this->height; j++) {
+		std::cout << "| ";
 		for (size_t i=0; i<this->width; i++) {
-			std::cout << this->mem_ptr->read(this->start_index + j*this->height + i) << " ";
+			std::cout << this->mem_ptr->read(this->start_index + j*this->height + i) << "\t";
 		}
-		std::cout << "\n";
+		std::cout << " |\n";
 	}
 }
