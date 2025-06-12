@@ -40,6 +40,15 @@ void CPU::print_state() {
 	std::cout << "\tr1 = 0b" << this->r1.to_string() << "\n";
 }
 
+void CPU::run(BitMap &bitmap) {
+	this->running = true;
+
+	while (this->running) {
+		this->cycle();
+		bitmap.show();
+	}
+}
+
 void CPU::run() {
 	this->running = true;
 

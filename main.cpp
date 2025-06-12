@@ -5,6 +5,7 @@
 #include "vm_types.hpp"
 
 #include "cpu.hpp"
+#include "bitmap.hpp"
 
 int main() {
 	CPU cpu(1024);
@@ -24,14 +25,18 @@ int main() {
 	
 	cpu.memory.load(program, 0);
 	cpu.memory.load(data, 20);
-
+	
+	/*
 	for (size_t i=0; i<15; i++) {
 		printf("mem[%ld] = 0x%04x \n", i, cpu.memory.read(i));
 	}
-
 	std::cout << "SIZE: " << cpu.memory.get_size() << "\n";
+	*/
 
-	cpu.run();
+	// bitmap display
+	BitMap bitmap{&cpu.memory, 100, 5, 5};
+
+	cpu.run(bitmap);
 
 	cpu.print_state();
 

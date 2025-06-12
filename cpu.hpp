@@ -5,6 +5,7 @@
 #include "memory.hpp"
 #include "utils.hpp"
 #include "alu.hpp"
+#include "bitmap.hpp"
 
 class CPU {
 public:
@@ -14,6 +15,7 @@ public:
 
 	void reset(); // set registers, flags, memory to zero
 
+	void run(BitMap &bitmap);
 	void run();
 
 	void cycle();

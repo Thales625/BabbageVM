@@ -5,8 +5,12 @@
 
 struct BitMap {
 public:
-	BitMap(Memory *n_mem_ptr, size_t start_index, size_t end_index) : mem_ptr(n_mem_ptr), display_alloc({start_index, end_index}) {}
+	BitMap(Memory *n_mem_ptr, size_t n_start_index, size_t n_width, size_t n_height);
+
+	void show();
+
 private:
 	Memory *mem_ptr;
-	MemAllocation display_alloc;
+	size_t start_index;
+	size_t width, height;
 };
