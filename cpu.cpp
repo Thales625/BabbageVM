@@ -2,10 +2,13 @@
 
 #include <iostream>
 
+#include <chrono>
+#include <thread>
+
 #define DEBUG
 
 // ctor
-CPU::CPU(Memory *n_mem_ptr) : mem_ptr(n_mem_ptr), reg_file(5) {
+CPU::CPU(Memory *n_mem_ptr) : mem_ptr(n_mem_ptr), reg_file(16) {
 	this->acc = this->reg_file.get_register(REGS::ACC);
 	this->pc = this->reg_file.get_register(REGS::PC);
 	this->sp = this->reg_file.get_register(REGS::SP);
@@ -56,8 +59,13 @@ void CPU::run(BitMap &bitmap) {
 void CPU::run() {
 	this->running = true;
 
-	while (this->running) {
+	// while (this->running) {
+	// 	this->cycle();
+	// }
+
+	for (size_t i=0; i<300 && this->running; i++) {
 		this->cycle();
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
 }
 
@@ -71,7 +79,7 @@ void CPU::cycle() {
 	byte_t base_opcode = get_base_opcode(this->ri.read());
 	
 	#ifdef DEBUG
-	std::cout << "OPCODE: " << static_cast<int>(base_opcode) << " | ";
+	std::cout << "OPCODE: " << static_cast<int>(base_opcode) << "\t| ";
 	#endif
 	
 	// EXECUTE
@@ -85,6 +93,7 @@ void CPU::cycle() {
 	AddrMode opd1_addr_mode = decode_mode_opd1(this->ri.read());
 
 	#ifdef DEBUG
+	/*
 	std::cout << "OPD1 MODE: " << static_cast<int>(opd1_addr_mode) << "(";
 	switch (opd1_addr_mode) {
 		case AddrMode::immediate: std::cout << "IMMEDIATE"; break;
@@ -92,6 +101,7 @@ void CPU::cycle() {
 		case AddrMode::direct: std::cout << "DIRECT"; break;
 	}
 	std::cout << ")\n";
+	*/
 	#endif
 
 	// FETCH opd_1
@@ -125,6 +135,7 @@ void CPU::cycle() {
 	AddrMode opd2_addr_mode = decode_mode_opd2(this->ri.read());
 
 	#ifdef DEBUG
+	/*
 	std::cout << "OPD2 MODE: " << static_cast<int>(opd2_addr_mode) << "(";
 	switch (opd2_addr_mode) {
 		case AddrMode::direct: std::cout << "DIRECT"; break;
@@ -132,6 +143,7 @@ void CPU::cycle() {
 		case AddrMode::immediate: std::cout << "IMMEDIATE"; break;
 	}
 	std::cout << ")\n";
+	*/
 	#endif
 
 	// FETCH opd_2
@@ -158,42 +170,42 @@ void CPU::cycle() {
 // instructions
 void CPU::i_add(word_t opd1) {
 	#ifdef DEBUG
-	std::cout << "ADD => opd1: " << opd1 << "\n";
+	std::cout << "ADD(" << opd1 << ")\n";
 	#endif
 	this->acc->write(this->acc->read() + opd1);
 }
 
 void CPU::i_br(word_t opd1) {
 	#ifdef DEBUG
-	std::cout << "BR => opd1: " << opd1 << "\n";
+	std::cout << "BR(" << opd1 << ")\n";
 	#endif
 	this->pc->write(opd1);
 }
 
 void CPU::i_brneg(word_t opd1) {
 	#ifdef DEBUG
-	std::cout << "BRNEG => opd1: " << opd1 << "\n";
+	std::cout << "BRNEG(" << opd1 << ")\n";
 	#endif
 	if (this->acc->read() < 0) this->pc->write(opd1);
 }
 
 void CPU::i_brpos(word_t opd1) {
 	#ifdef DEBUG
-	std::cout << "BRPOS => opd1: " << opd1 << "\n";
+	std::cout << "BRPOS(" << opd1 << ")\n";
 	#endif
 	if (this->acc->read() > 0) this->pc->write(opd1);
 }
 
 void CPU::i_brzero(word_t opd1) {
 	#ifdef DEBUG
-	std::cout << "BRZERO => opd1: " << opd1 << "\n";
+	std::cout << "BRZERO(" << opd1 << ")\n";
 	#endif
 	if (this->acc->read() == 0) this->pc->write(opd1);
 }
 
 void CPU::i_call(word_t opd1) { // TODO
 	#ifdef DEBUG
-	std::cout << "CALL => opd1: " << opd1 << "\n";
+	std::cout << "CALL(" << opd1 << ")\n";
 	#endif
 	this->sp->write(this->pc->read());
 	this->pc->write(opd1);
@@ -201,42 +213,44 @@ void CPU::i_call(word_t opd1) { // TODO
 
 void CPU::i_copy_r(word_t opd1, word_t opd2) {
 	#ifdef DEBUG
-	std::cout << "COPY REG => opd1: " << opd1 << "opd2: " << opd2 <<  "\n";
+	// std::cout << "COPY REG(" << opd1 << ", " << opd2 <<  ")\n";
+	std::cout << "COPY REG[" << opd1 << "] = " << opd2 <<  "\n";
 	#endif
 	this->reg_file.write(opd1, opd2);
 }
 
 void CPU::i_copy_m(word_t opd1, word_t opd2) {
 	#ifdef DEBUG
-	std::cout << "COPY MEM => opd1: " << opd1 << "opd2: " << opd2 <<  "\n";
+	// std::cout << "COPY MEM(" << opd1 << ", " << opd2 <<  ")\n";
+	std::cout << "COPY MEM[" << opd1 << "] = " << opd2 <<  "\n";
 	#endif
 	this->mem_ptr->write(opd1, opd2);
 }
 
 void CPU::i_divide(word_t opd1) {
 	#ifdef DEBUG
-	std::cout << "DIVIDE => opd1: " << opd1 << "\n";
+	std::cout << "DIVIDE(" << opd1 << ")\n";
 	#endif
 	this->acc->write(this->acc->read() / opd1);
 }
 
 void CPU::i_load(word_t opd1) {
 	#ifdef DEBUG
-	std::cout << "LOAD => opd1: " << opd1 << "\n";
+	std::cout << "LOAD(" << opd1 << ")\n";
 	#endif
 	this->acc->write(opd1);
 }
 
 void CPU::i_mult(word_t opd1) {
 	#ifdef DEBUG
-	std::cout << "MULT => opd1: " << opd1 << "\n";
+	std::cout << "MULT(" << opd1 << ")\n";
 	#endif
 	this->acc->write(this->acc->read() * opd1);
 }
 
 void CPU::i_push(word_t opd1) {
 	#ifdef DEBUG
-	std::cout << "PUSH => opd1: " << opd1 << "\n";
+	std::cout << "PUSH(" << opd1 << ")\n";
 	#endif
 	this->mem_ptr->write(this->sp->read(), opd1);
 	this->sp->write(this->sp->read() + 1);
@@ -244,7 +258,7 @@ void CPU::i_push(word_t opd1) {
 
 void CPU::i_pop(word_t opd1) {
 	#ifdef DEBUG
-	std::cout << "POP => opd1: " << opd1 << "\n";
+	std::cout << "POP(" << opd1 << ")\n";
 	#endif
 	this->reg_file.write(opd1, this->mem_ptr->read(this->sp->read()));
 	this->sp->write(this->sp->read() - 1);
@@ -267,14 +281,14 @@ void CPU::i_stop() {
 
 void CPU::i_store(word_t opd1) {
 	#ifdef DEBUG
-	std::cout << "STORE => opd1: " << opd1 << "\n";
+	std::cout << "STORE(" << opd1 << ")\n";
 	#endif
 	this->mem_ptr->write(opd1, this->acc->read());
 }
 
 void CPU::i_sub(word_t opd1) {
 	#ifdef DEBUG
-	std::cout << "SUB => opd1: " << opd1 << "\n";
+	std::cout << "SUB(" << opd1 << ")\n";
 	#endif
 	this->acc->write(this->acc->read() - opd1);
 }
