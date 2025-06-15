@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <string>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 
 #include "SDL.h"
 
@@ -16,14 +18,13 @@
 #error This backend requires SDL 2.0.17+ because of SDL_RenderGeometry() function
 #endif
 // Main code
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
 	// Setup SDL: não mexer!
 #ifdef _WIN32
 	::SetProcessDPIAware();
 #endif
-	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0)
-	{
+	if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0){
 		printf("Error: %s\n", SDL_GetError());
 		return -1;
 	}
@@ -36,15 +37,18 @@ int main(int argc, char *argv[])
 	// Create window with SDL_Renderer graphics context
 	float main_scale = ImGui_ImplSDL2_GetContentScaleForDisplay(0);
 	SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_ALLOW_HIGHDPI);
-	SDL_Window *window = SDL_CreateWindow("BabbageVM", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, (int)(1280 * main_scale), (int)(720 * main_scale), window_flags);
-	if (window == nullptr)
-	{
+	SDL_Window* window = SDL_CreateWindow("BabbageVM", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, (int)(1280 * main_scale), (int)(720 * main_scale), window_flags);
+	SDL_Surface* icon = SDL_LoadBMP("assets/bbg.bmp");
+	if(icon){
+		SDL_SetWindowIcon(window, icon);
+		SDL_FreeSurface(icon);
+	}
+	if(window == nullptr){
 		printf("Error: SDL_CreateWindow(): %s\n", SDL_GetError());
 		return -1;
 	}
-	SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
-	if (renderer == nullptr)
-	{
+	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
+	if(renderer == nullptr){
 		SDL_Log("Error creating SDL_Renderer!");
 		return -1;
 	}
@@ -52,7 +56,7 @@ int main(int argc, char *argv[])
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
-	ImGuiIO &io = ImGui::GetIO();
+	ImGuiIO& io = ImGui::GetIO();
 	(void)io;
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
 
@@ -61,7 +65,7 @@ int main(int argc, char *argv[])
 	// ImGui::StyleColorsLight();
 
 	// Setup scaling
-	ImGuiStyle &style = ImGui::GetStyle();
+	ImGuiStyle& style = ImGui::GetStyle();
 	style.ScaleAllSizes(main_scale); // Bake a fixed style scale. (until we have a solution for dynamic style scaling, changing this requires resetting Style + calling this again)
 	style.FontScaleDpi = main_scale; // Set initial font scale. (using io.ConfigDpiScaleFonts=true makes this unnecessary. We leave both here for documentation purpose)
 
@@ -70,15 +74,21 @@ int main(int argc, char *argv[])
 	ImGui_ImplSDLRenderer2_Init(renderer);
 
 	// Our state
-	bool show_demo_window = false;
-	bool show_another_window = false;
 	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-	// Main loop - mexam aq
+	// Variables
 	bool done = false;
-	while (!done)
-	{
-		std::string dropped_file; // for dropping the input file
+	std::string dropped_file; // for dropping the input file
+	std::string file_content;
+	bool file_ready = false;
+
+	// Memory - possivelmente gerente da implementacao mexer aqui depois
+	uint8_t memory[1024] = {}; // simulated memory - pass actual VM memory
+	const int bytes_row = 16;
+	const int rows = 16;
+
+	// Main loop - mexam aq
+	while(!done){
 		// Poll and handle events (inputs, window resize, etc.)
 		// You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
 		// - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application, or clear/overwrite your copy of the mouse data.
@@ -86,25 +96,34 @@ int main(int argc, char *argv[])
 		// Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
 		SDL_Event event;
 		SDL_EventState(SDL_DROPFILE, SDL_ENABLE);
-		while (SDL_PollEvent(&event))
-		{
+		while(SDL_PollEvent(&event)){
 			ImGui_ImplSDL2_ProcessEvent(&event);
-			if (event.type == SDL_QUIT)
+			if(event.type == SDL_QUIT)
 				done = true;
-			if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(window))
+			if(event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(window))
+				done = true;
+			if(event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_q)
 				done = true;
 
 			// drag & drop do input.txt
-			if (event.type == SDL_DROPFILE)
-			{
-				char *dropped_path = event.drop.file;
+			if(event.type == SDL_DROPFILE){
+				char* dropped_path = event.drop.file;
 				dropped_file = dropped_path;
 				std::cout << "Arquivo solto: " << dropped_path << std::endl;
+				file_ready = true;
 				SDL_free(dropped_path); // sempre liberar!
+
+				std::ifstream file(dropped_file);
+				if(file){
+					std::stringstream buffer;
+					buffer << file.rdbuf();
+					file_content = buffer.str();
+				}else{
+					file_content = "Failed to open file";
+				}
 			}
 		}
-		if (SDL_GetWindowFlags(window) & SDL_WINDOW_MINIMIZED)
-		{
+		if(SDL_GetWindowFlags(window) & SDL_WINDOW_MINIMIZED){
 			SDL_Delay(10);
 			continue;
 		}
@@ -114,50 +133,123 @@ int main(int argc, char *argv[])
 		ImGui_ImplSDL2_NewFrame();
 		ImGui::NewFrame();
 
-		// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-		if (show_demo_window)
-			ImGui::ShowDemoWindow(&show_demo_window);
-
-		// 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
-		// provavelmente usa escopos diferentes para cada janela?
+		// TODO: gerente da implementacao, implementa ai
+		// Controls window -> run, step through the generated code and clear
 		{
 			// static float f = 0.0f;
 
-			ImGui::Begin("Buttons", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove); // Create window
+			ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
+			ImGui::SetNextWindowSize(ImVec2(250, 200), ImGuiCond_Always);
+			ImGui::Begin("CONTROLS", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove); // Create window
 
 			// TODO: clicar nos botões e fazer coisas
 			// if(componente) -> evento, faz coisas dentro do if?
-			ImGui::Button("Run");
-			ImGui::SameLine();
-			ImGui::Button("Step");
-			ImGui::SameLine();
-			ImGui::Button("Clear");
+			if(ImGui::Button("(R)un") || ImGui::IsKeyPressed(ImGuiKey_R)){
+				std::cout << "run ";
+			}
 
-			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+			ImGui::SameLine();
+			if(ImGui::Button("(S)tep") || ImGui::IsKeyPressed(ImGuiKey_S)){
+				std::cout << "step ";
+			}
+
+			ImGui::SameLine();
+			if(ImGui::Button("(C)lear") || ImGui::IsKeyPressed(ImGuiKey_C)){
+				std::cout << "clear ";
+			}
+
+			ImGui::Text("avg %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+			ImGui::Text("press Q to quit");
 			ImGui::End();
 		}
 
-		// Input window: drag and drop files
+		// Memory -> table with memory addrs and contents
 		{
-			ImGui::Begin("Input", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
-			if (!dropped_file.empty())
-			{
-				ImGui::Text("%s", dropped_file.c_str());
-			}
-			else
-			{
-				ImGui::Text("Nenhum arquivo solto ainda.");
+			static int offset = 0;
+			ImGui::SetNextWindowPos(ImVec2(250, 0), ImGuiCond_Always);
+			ImGui::SetNextWindowSize(ImVec2(1030, 460), ImGuiCond_Always);
+			ImGui::Begin("MEMORY", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+			ImGui::SliderInt("OFFSET", &offset, 0, sizeof(memory) - bytes_row * rows);
+			ImGui::SameLine();
+			ImGui::ProgressBar(0.5f, ImVec2(200, 20), "USED"); //TODO: occupied mem here
+
+			if(ImGui::BeginTable("MemoryTable", bytes_row + 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)){
+				ImGui::TableSetupColumn("Addr");
+				for (int i = 0; i < bytes_row; i++){
+					char col_name[8];
+					sprintf(col_name, "+%X", i);
+					ImGui::TableSetupColumn(col_name);
+				}
+
+				ImGui::TableSetupColumn("ASCII");
+				ImGui::TableHeadersRow();
+
+				for(int row = 0; row < rows; row++){
+					int addr = offset + row * bytes_row;
+					if(addr >= sizeof(memory)) break;
+
+					ImGui::TableNextRow();
+					ImGui::TableSetColumnIndex(0);
+					ImGui::Text("%04X", addr);
+
+					char ascii[bytes_row + 1];
+					ascii[bytes_row] = '\0';
+
+					for (int col = 0; col < bytes_row; ++col) {
+						int index = addr + col;
+						ImGui::TableSetColumnIndex(col + 1);
+
+						if (index < sizeof(memory)) {
+							int val = memory[index];
+							ImGui::PushID(index);
+							ImGui::SetNextItemWidth(30);
+							ImGui::InputInt("", &val, 0, 0, ImGuiInputTextFlags_CharsHexadecimal);
+							memory[index] = val & 0xFF;
+							ImGui::PopID();
+
+							ascii[col] = (val >= 32 && val <= 126) ? (char)val : '.';
+						} else {
+							ascii[col] = '.';
+							ImGui::Text("--");
+						}
+					}
+
+					ImGui::TableSetColumnIndex(bytes_row + 1);
+					ImGui::TextUnformatted(ascii);
+				}
+				ImGui::EndTable();
 			}
 			ImGui::End();
 		}
 
-		// 3. Show another simple window.
-		if (show_another_window)
+		// Input window -> drag and drop code
 		{
-			ImGui::Begin("Another Window", &show_another_window); // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-			ImGui::Text("Hello from another window!");
-			if (ImGui::Button("Close Me"))
-				show_another_window = false;
+			ImGui::SetNextWindowPos(ImVec2(0, 200), ImGuiCond_Always);
+			ImGui::SetNextWindowSize(ImVec2(250, 260), ImGuiCond_Always);
+			ImGui::Begin("INPUT", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+			if(file_ready){
+				ImGui::Text("File: %s", dropped_file.c_str());
+				ImGui::Separator();
+				ImGui::BeginChild("TextScroll", ImVec2(0, 0), true, ImGuiWindowFlags_HorizontalScrollbar);
+				ImGui::TextUnformatted(file_content.c_str());
+				ImGui::EndChild();
+			}else{
+				ImGui::Text("Arraste um arquivo aqui.");
+			}
+			ImGui::End();
+		}
+
+		// Output window -> logs events and prints final output. Example:
+		// MacroProcessor: test.asm generated
+		// Assembler: test.obj generated
+		// Linker: test.hpx generated
+		// Loader: source code loaded in memory
+		// <output>
+		// END OF EXECUTION
+		{
+			ImGui::SetNextWindowPos(ImVec2(0, 460), ImGuiCond_Always);
+			ImGui::SetNextWindowSize(ImVec2(250, 260), ImGuiCond_Always);
+			ImGui::Begin("OUTPUT", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
 			ImGui::End();
 		}
 
