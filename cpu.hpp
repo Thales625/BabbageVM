@@ -9,9 +9,9 @@
 
 class CPU {
 public:
-	CPU(Memory *n_mem_ptr);
+	CPU(Memory<word_t> *n_mem_ptr);
 
-	Memory *mem_ptr;
+	Memory<word_t> *mem_ptr;
 
 	void reset(); // set registers, memory to zero
 

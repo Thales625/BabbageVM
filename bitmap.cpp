@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-BitMap::BitMap(Memory *n_mem_ptr, size_t n_start_index, size_t n_width, size_t n_height) : mem_ptr(n_mem_ptr), start_index(n_start_index), width(n_width), height(n_height) {
+BitMap::BitMap(Memory<> *n_mem_ptr, size_t n_start_index, size_t n_width, size_t n_height) : mem_ptr(n_mem_ptr), start_index(n_start_index), width(n_width), height(n_height) {
 	// check if have space
 	if (n_start_index + n_width * n_height > n_mem_ptr->get_size())
 		throw std::out_of_range("Not enough space");

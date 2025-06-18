@@ -24,9 +24,9 @@ public:
 	}
 
 	T read(size_t index) const {
-		// if (index >= this->get_size()) {
-		// 	throw std::out_of_range("RegFile read out of bounds");
-		// }
+		if (index >= this->get_size()) {
+			throw std::out_of_range("RegFile read out of bounds");
+		}
 		return registers[index].read();
 	};
 
@@ -43,7 +43,12 @@ public:
 		}
 		return &registers[index];
 	};
+
+	void clear() {
+		for (Register<T> reg : this->registers) {
+			reg.write(0);
+		}
+	}
 private:
 	std::vector<Register<T>> registers;
-	size_t size;
 };

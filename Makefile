@@ -3,7 +3,7 @@ CXXFLAGS = -Wall -Wextra -std=c++17
 
 TARGET = main
 
-SRCS = main.cpp cpu.cpp memory.cpp bitmap.cpp
+SRCS = $(wildcard *.cpp)
 OBJS = $(SRCS:.cpp=.o)
 
 all: $(TARGET)

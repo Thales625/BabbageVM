@@ -8,7 +8,7 @@
 #define DEBUG
 
 // ctor
-CPU::CPU(Memory *n_mem_ptr) : mem_ptr(n_mem_ptr), reg_file(16) {
+CPU::CPU(Memory<word_t> *n_mem_ptr) : mem_ptr(n_mem_ptr), reg_file(16) {
 	this->acc = this->reg_file.get_register(REGS::ACC);
 	this->pc = this->reg_file.get_register(REGS::PC);
 	this->sp = this->reg_file.get_register(REGS::SP);
@@ -26,8 +26,12 @@ void CPU::reset() {
 	this->r0->write(0);
 	this->r1->write(0);
 
+	// clear reg_file
+	this->reg_file.clear();
+
 	// clear memory
 	this->mem_ptr->clear();
+
 
 	this->running = false;
 }
@@ -59,14 +63,16 @@ void CPU::run(BitMap &bitmap) {
 void CPU::run() {
 	this->running = true;
 
-	// while (this->running) {
-	// 	this->cycle();
-	// }
-
+	#ifndef DEBUG
+	while (this->running) {
+		this->cycle();
+	}
+	#else
 	for (size_t i=0; i<300 && this->running; i++) {
 		this->cycle();
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
+	#endif
 }
 
 void CPU::cycle() {
@@ -93,7 +99,6 @@ void CPU::cycle() {
 	AddrMode opd1_addr_mode = decode_mode_opd1(this->ri.read());
 
 	#ifdef DEBUG
-	/*
 	std::cout << "OPD1 MODE: " << static_cast<int>(opd1_addr_mode) << "(";
 	switch (opd1_addr_mode) {
 		case AddrMode::immediate: std::cout << "IMMEDIATE"; break;
@@ -101,7 +106,6 @@ void CPU::cycle() {
 		case AddrMode::direct: std::cout << "DIRECT"; break;
 	}
 	std::cout << ")\n";
-	*/
 	#endif
 
 	// FETCH opd_1
@@ -110,10 +114,18 @@ void CPU::cycle() {
 	this->pc->write(this->pc->read() + 1);
 
 	switch (opd1_addr_mode) {
+		case AddrMode::direct:    opd_1 = this->mem_ptr->read(opd_1); break;
+		case AddrMode::indirect:  opd_1 = this->mem_ptr->read(this->mem_ptr->read(opd_1)); break;
+		case AddrMode::immediate: break;
+	}
+
+	/*
+	switch (opd1_addr_mode) {
 		case AddrMode::direct:    opd_1 = this->reg_file.read(opd_1); break;
 		case AddrMode::indirect:  opd_1 = this->mem_ptr->read(this->reg_file.read(opd_1)); break;
 		case AddrMode::immediate: break;
 	}
+	*/
 
 	switch (base_opcode) {
 		case 02: i_add(opd_1); return;
@@ -135,7 +147,6 @@ void CPU::cycle() {
 	AddrMode opd2_addr_mode = decode_mode_opd2(this->ri.read());
 
 	#ifdef DEBUG
-	/*
 	std::cout << "OPD2 MODE: " << static_cast<int>(opd2_addr_mode) << "(";
 	switch (opd2_addr_mode) {
 		case AddrMode::direct: std::cout << "DIRECT"; break;
@@ -143,7 +154,6 @@ void CPU::cycle() {
 		case AddrMode::immediate: std::cout << "IMMEDIATE"; break;
 	}
 	std::cout << ")\n";
-	*/
 	#endif
 
 	// FETCH opd_2
@@ -152,10 +162,18 @@ void CPU::cycle() {
 	this->pc->write(this->pc->read() + 1);
 
 	switch (opd2_addr_mode) {
+		case AddrMode::direct:    opd_2 = this->mem_ptr->read(opd_2); break;
+		case AddrMode::indirect:  opd_2 = this->mem_ptr->read(this->mem_ptr->read(opd_2)); break;
+		case AddrMode::immediate: break;
+	}
+
+	/*
+	switch (opd2_addr_mode) {
 		case AddrMode::direct:    opd_2 = this->reg_file.read(opd_2); break;
 		case AddrMode::indirect:  opd_2 = this->mem_ptr->read(this->reg_file.read(opd_2)); break;
 		case AddrMode::immediate: break;
 	}
+	*/
 
 	switch (base_opcode) {
 		case 13: i_copy_r(opd_1, opd_2); break;

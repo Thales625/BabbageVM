@@ -6,9 +6,10 @@
 
 #include "cpu.hpp"
 #include "bitmap.hpp"
+#include "memory.hpp"
 
 int main() {
-	Memory *mem_ptr = new Memory(1024); // 2kB
+	Memory<word_t> *mem_ptr = new Memory<word_t>(1024); // 2kB
 
 	CPU cpu(mem_ptr);
 
