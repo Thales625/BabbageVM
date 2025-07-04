@@ -1,35 +1,44 @@
+#include "assembler.hpp"
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <string>
-#include <map>
-#include <vector>
 #include <iomanip>
 
-// symtable(label -> addr)
-std::map<std::string, int> symTable;
+// opcodes, not finished!
+// TODO: different write instructions for r and i
+std::map<std::string, int> opcodeTable = {
+	{"BR",		0x00},
+	{"BRPOS",	0x01},
+	{"ADD",		0x02},
+	{"LOAD",	0x03},
+	{"BRZERO",	0x04},
+	{"BRNEG",	0x05},
+	{"SUB",		0x06},
+	{"STORE",	0x07},
+	{"WRITE",	0x08},
+	{"",	0x09},
+	{"DIVIDE",	0x0A},
+	{"STOP",	0x0B},
+	{"READ",	0x0C},
+	{"COPY",	0x0D},
+	{"MULT",	0x0E},
+	{"CALL",	0x0F},
+	{"RET",		0x10},
+};
 
-// source object code and listing
-std::vector<std::string> srcObj;
-std::vector<std::string> listing;
-
-// error listing(line + message)
-std::vector<std::string> errors;
-
-// pos
-int locCounter = 0x0000;
-
-// aux functions
-bool isComment(const std::string& line){
+bool Assembler::isComment(const std::string& line) const{
 	return !line.empty() && line[0] == '*';
 }
 
-bool lineTooLong(const std::string& line){
+bool Assembler::lineTooLong(const std::string& line) const{
 	return line.length() > 80;
 }
 
-// split line into individual tokens
-std::vector<std::string> tokenize(const std::string& line){
+uint16_t Assembler::encodeInstruction(uint8_t opcode, uint8_t addrMode1, uint8_t addrMode2) const{
+	return (opcode << 8) | (addrMode2 << 4) | addrMode1;
+}
+
+std::vector<std::string> Assembler::tokenize(const std::string& line) const{
 	std::stringstream ss(line);
 	std::string token;
 	std::vector<std::string> tokens;
@@ -39,10 +48,12 @@ std::vector<std::string> tokenize(const std::string& line){
 	return tokens;
 }
 
-// first pass: make symtable
-void firstPass(std::ifstream& src){
+void Assembler::firstPass(std::ifstream& src){
 	std::string line;
 	int numLine = 0;
+
+	bool foundStart = false;
+	bool foundEnd = false;
 
 	while(getline(src, line)){
 		numLine++;
@@ -66,40 +77,42 @@ void firstPass(std::ifstream& src){
 			if(symTable.count(label)){
 				errors.push_back("linha " + std::to_string(numLine) + ": símbolo redefinido(" + label + ").");
 			}else{
-				symTable[label] = locCounter;
+				symTable[label] = locationCounter; //maps the label to its respective memory address
 			}
 		}
 
 		if(idx < tokens.size())
 			opcode = tokens[idx++];
 
-		// TODO: sub with real opcodes
 		if(opcode == "START"){
 			if(idx < tokens.size()){
 				std::string startLabel = tokens[idx];
-				symTable[startLabel] = locCounter;
+				symTable[startLabel] = locationCounter;
+				foundStart = true;
 			}
 		}
-		else if(opcode == "SPACE"){
-			locCounter += 1;
-		}
-		else if(opcode == "CONST"){
-			locCounter += 1;
-		}
-		else if(opcode == "STACK"){
-			locCounter += 1;
+
+		// all of those need 1word
+		else if(opcode == "SPACE" || opcode == "CONST" || opcode == "STACK") {
+            locationCounter += 1;
 		}
 		else if(opcode == "END"){
-			// do nothing :3
+			if(foundStart){
+				foundEnd = true;
+			}else{
+				errors.push_back("linha " + std::to_string(numLine) + ": END sem START associado");
+			}
+			break; //get off
 		}
+		
+		// if its not a directive, its a normal instruction -> 1 word
 		else{
-			// TODO: think hard about ts(this segment)
-			locCounter += 1;
+			locationCounter += 1;
 		}
 	}
 }
 
-void secondPass(const std::string& filename, std::ifstream& src){
+void Assembler::secondPass(std::ifstream& src, const std::string& filename){
 	std::string line;
 	int numLine = 0;
 	int pc = 0x0000;	//position counter for listing
@@ -138,14 +151,13 @@ void secondPass(const std::string& filename, std::ifstream& src){
 			label = tokens[idx++];
 		}
 
+		// extract opcode and operand (if it exists in current line)
 		if(idx < tokens.size()) opcode = tokens[idx++];
 		if(idx < tokens.size()) operand = tokens[idx++];
 
-		// generate simple obj code
-		// TODO: map<string, int> opcodeTable ={{"LOAD", 0x01}, ... };
-
 		int instruction = 0;
 
+		//handle assembler instructions
 		if(opcode == "CONST"){
 			try{
 				instruction = stoi(operand);
@@ -155,24 +167,49 @@ void secondPass(const std::string& filename, std::ifstream& src){
 		}else if(opcode == "SPACE"){
 			instruction = 0;
 		}else if(opcode == "START" || opcode == "END" || opcode == "STACK" || opcode == "INTDEF" || opcode == "INTUSE"){
-			// no code here, just the directive
 			listLine << "      " << "      " << "   " << line;
 			lst << listLine.str() << std::endl;
 			continue;
-		}else{
-			// TODO: some real work
-			instruction = 0xAA;
+		}else if(opcodeTable.count(opcode)){
+			//opcodes the fato, se existir pega da table
+			int opcodeBin = opcodeTable[opcode];
 
-			if(!operand.empty()){
-				if(symTable.count(operand)){
-					instruction =(instruction << 8) | symTable[operand];
-				}else{
-					errors.push_back("linha " + std::to_string(numLine) + ": símbolo não definido(" + operand + ").");
+			// no operand: just shift opcodeBin to its actual place
+			// example: STOP = 0x000B << 8 = 0x0B00
+			if(operand.empty()){
+				instruction = (opcodeBin << 8);
+			}else{
+				//immediate and indirect checking
+				uint8_t addrMode1 = 0x0;
+				uint8_t addrMode2 = 0x0;
+				
+				// #operand
+				if(operand.front() == '#'){
+					addrMode1 = 0x2;
+					operand = operand.substr(1); //skip # and interpret the rest as operand
 				}
+
+				// operand,I
+				if(operand.size() > 2 && operand.substr(operand.size() - 2) == ",I"){
+					addrMode1 = 0x1;
+					operand = operand.substr(0, operand.size() - 2); //interpret the operand as normal but skip last 2 chars
+				}
+
+				//resolve operand address (direct or previously stored in symTable)
+				int address = 0;
+				if(isdigit(operand[0])){
+					address = stoi(operand);
+				}else if(symTable.count(operand)){
+					address = symTable[operand];
+				}else{
+					errors.push_back("linha " + std::to_string(numLine) + ": simbolo nao definido (" + operand + ")");
+				}
+
+				instruction = encodeInstruction(opcodeBin, addrMode1, addrMode2);
 			}
 		}
 
-		// objcode generated
+		//TODO: write this damn thing to a file already!
 		std::stringstream codhex;
 		codhex << std::hex << std::setw(4) << std::setfill('0') << instruction;
 		output = codhex.str();

@@ -1,0 +1,8 @@
+        START   TESTE
+        LOAD    NUM
+        ADD     CONST
+        STORE   RES
+        END
+NUM     CONST   5
+CONST   CONST   1
+RES     SPACE
