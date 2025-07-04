@@ -14,6 +14,7 @@ private:
     std::vector<std::string> lstOutput;
     std::vector<std::string> errors;
     int locationCounter = 0x0000;
+    int startAddress = 0;
 
     // Checks if a line is a comment by searching for the '*' character at the start of the line.
     bool isComment(const std::string& line) const;
@@ -23,6 +24,9 @@ private:
 
     // Splits a line into tokens to be later used in parsing shenanigans.
     std::vector<std::string> tokenize(const std::string& line) const;
+
+    // Helper function to format addresses in 4-digit hex
+    std::string toHex4(int val) const;
 
     /**
      * @brief 			Encodes a 16-bit instruction word using opcode and operand addressing modes

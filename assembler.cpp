@@ -48,6 +48,12 @@ std::vector<std::string> Assembler::tokenize(const std::string& line) const{
 	return tokens;
 }
 
+std::string Assembler::toHex4(int val) const{
+	std::stringstream ss;
+	ss << std::hex << std::setw(4) << std::setfill('0') << val;
+	return ss.str();
+}
+
 void Assembler::firstPass(std::ifstream& src){
 	std::string line;
 	int numLine = 0;
@@ -87,7 +93,21 @@ void Assembler::firstPass(std::ifstream& src){
 		if(opcode == "START"){
 			if(idx < tokens.size()){
 				std::string startLabel = tokens[idx];
-				symTable[startLabel] = locationCounter;
+
+				if(isdigit(startLabel[0])){
+					// if digit, just get the address and pass it to lc
+					startAddress = std::stoi(startLabel);
+					locationCounter = startAddress;
+				}else if(symTable.count(startLabel)){
+					// if previously defined (can cause a redefined symbol, dont care, solve later on the 2nd pass)
+					startAddress = symTable[startLabel];
+					locationCounter = symTable[startLabel];
+				}else{
+					// fallback: label not found yet, can be defined later
+					startAddress = locationCounter;
+					symTable[startLabel] = locationCounter;
+				}
+
 				foundStart = true;
 			}
 		}
@@ -115,7 +135,7 @@ void Assembler::firstPass(std::ifstream& src){
 void Assembler::secondPass(std::ifstream& src, const std::string& filename){
 	std::string line;
 	int numLine = 0;
-	int pc = 0x0000;	//position counter for listing
+	int pc = startAddress;
 
 	std::ofstream obj(filename + ".OBJ");
 	std::ofstream lst(filename + ".LST");
@@ -126,18 +146,13 @@ void Assembler::secondPass(std::ifstream& src, const std::string& filename){
 	while(getline(src, line)){
 		numLine++;
 
-		std::stringstream listLine;
-		std::string output = "----";	//placeholder
-
 		if(isComment(line)){
-			listLine << "      " << "      " << "   " << line;
-			lst << listLine.str() << std::endl;
+			lst << "      " << "      " << "   " << line << std::endl;
 			continue;
 		}
 
 		if(lineTooLong(line)){
-			listLine << "XXXX  ERRO  linha muito longa: " << line;
-			lst << listLine.str() << std::endl;
+			lst << "XXXX  ERRO  linha muito longa: " << line << std::endl;
 			continue;
 		}
 
@@ -145,30 +160,31 @@ void Assembler::secondPass(std::ifstream& src, const std::string& filename){
 		if(tokens.empty()) continue;
 
 		int idx = 0;
-		std::string label, opcode, operand;
+		std::string label, opcode, operand1, operand2;
 
 		if(line[0] != ' ' && line[0] != '\t'){
 			label = tokens[idx++];
 		}
 
-		// extract opcode and operand (if it exists in current line)
+		// extract opcode and operands (if it exists in current line)
 		if(idx < tokens.size()) opcode = tokens[idx++];
-		if(idx < tokens.size()) operand = tokens[idx++];
+		if(idx < tokens.size()) operand1 = tokens[idx++];
+		if(idx < tokens.size()) operand2 = tokens[idx++];
 
 		int instruction = 0;
+		int val1 = 0, val2 = 0;
 
 		//handle assembler instructions
 		if(opcode == "CONST"){
 			try{
-				instruction = stoi(operand);
+				instruction = std::stoi(operand1);
 			}catch(...){
 				errors.push_back("linha " + std::to_string(numLine) + ": valor CONST inválido.");
 			}
 		}else if(opcode == "SPACE"){
 			instruction = 0;
 		}else if(opcode == "START" || opcode == "END" || opcode == "STACK" || opcode == "INTDEF" || opcode == "INTUSE"){
-			listLine << "      " << "      " << "   " << line;
-			lst << listLine.str() << std::endl;
+			lst << "      " << "      " << "   " << line << std::endl;
 			continue;
 		}else if(opcodeTable.count(opcode)){
 			//opcodes the fato, se existir pega da table
@@ -176,51 +192,57 @@ void Assembler::secondPass(std::ifstream& src, const std::string& filename){
 
 			// no operand: just shift opcodeBin to its actual place
 			// example: STOP = 0x000B << 8 = 0x0B00
-			if(operand.empty()){
+			if(operand1.empty()){
 				instruction = (opcodeBin << 8);
 			}else{
-				//immediate and indirect checking
-				uint8_t addrMode1 = 0x0;
-				uint8_t addrMode2 = 0x0;
+				uint8_t addrMode1 = 0, addrMode2 = 0;
 				
-				// #operand
-				if(operand.front() == '#'){
-					addrMode1 = 0x2;
-					operand = operand.substr(1); //skip # and interpret the rest as operand
-				}
+				// cute little lambda fun for addrMode checking
+				auto parseOperand = [&](std::string& op, uint8_t& mode, int& val){
+					if(op.empty()) return;
 
-				// operand,I
-				if(operand.size() > 2 && operand.substr(operand.size() - 2) == ",I"){
-					addrMode1 = 0x1;
-					operand = operand.substr(0, operand.size() - 2); //interpret the operand as normal but skip last 2 chars
-				}
+					if(op.front() == '#'){
+						mode = 0x2;		//immediate
+						op = op.substr(1);
+					}else if(op.size() > 2 && op.substr(op.size() - 2) == ",I"){
+						mode = 0x1;		//indirect
+						op = op.substr(0, op.size() - 2);
+					}else{
+						mode = 0x0;		//direct
+					}
 
-				//resolve operand address (direct or previously stored in symTable)
-				int address = 0;
-				if(isdigit(operand[0])){
-					address = stoi(operand);
-				}else if(symTable.count(operand)){
-					address = symTable[operand];
-				}else{
-					errors.push_back("linha " + std::to_string(numLine) + ": simbolo nao definido (" + operand + ")");
-				}
+					//resolve operand address (direct or previously stored in symTable)
+					if(isdigit(op[0])){
+						val = std::stoi(op);
+					}else if(symTable.count(op)){
+						val = symTable[op];
+					}else{
+						errors.push_back("linha " + std::to_string(numLine) + ": simbolo nao definido (" + op + ")");
+					}
+				};
+
+				parseOperand(operand1, addrMode1, val1);
+				parseOperand(operand2, addrMode2, val2);
 
 				instruction = encodeInstruction(opcodeBin, addrMode1, addrMode2);
 			}
 		}
 
-		//TODO: write this damn thing to a file already!
-		std::stringstream codhex;
-		codhex << std::hex << std::setw(4) << std::setfill('0') << instruction;
-		output = codhex.str();
+		obj << toHex4(instruction) << std::endl;
+		lst << toHex4(pc) << "  " << toHex4(instruction) << "   " << line << std::endl;
+		pc++;
 
-		obj << output << std::endl;
+		if(!operand1.empty()){
+			obj << toHex4(val1) << std::endl;
+			lst << toHex4(pc) << "  " << toHex4(val1) << std::endl;
+			pc++; 
+		}
+		if(!operand2.empty()){
+			obj << toHex4(val2) << std::endl;
+			lst << toHex4(pc) << "  " << toHex4(val2) << std::endl;
+			pc++;
+		}
 
-		listLine << std::hex << std::setw(4) << std::setfill('0') << pc << "  ";
-		listLine << output << "   " << line;
-		lst << listLine.str() << std::endl;
-
-		pc += 1;
 	}
 
 	// error report
