@@ -1,6 +1,6 @@
-.vscode/
-build/
-main.exe
-main
-*.o
-doc.pdf
+# vm
+vm/build/
+vm/.vscode/
+vm/doc.pdf
+vm/main.exe
+vm/main
