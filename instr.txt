@@ -3,24 +3,39 @@
 
 0b0000000000000000
   fedcba9876543210
-  OOOOOOOOXXaaXXAA
+  OOOOOOOOX*aaX*AA
+
+OPD
+ reg)
+  X000 = 0 -> immediate
+  X001 = 1 -> direct
+  X010 = 2 -> indirect
+
+ mem)
+  X100 = 8 -> immediate
+  X101 = 9 -> direct
+  X110 = a -> indirect
 
 hex = 0xOOaA
 
-O: opcode
 X: dont care
+O: opcode
 A: addrs mode operand1
 a: addrs mode operand2
+*: flag reg/mem
 
 8-f = opcode (instruction) <byte>
-0-1 = opd1 addrs mode
-4-5 = opd2 addrs mode
+0-2 = opd1 addrs mode
+4-6 = opd2 addrs mode
 
-ex:
-	ADD (opcode=2):
-		0x0200 # direct mode
-		0x0201 # indirect mode
-		0x0202 # immediate mode
+Address
+0 = REG immediate
+1 = REG   direct
+2 = REG indirect
+
+8 = MEM immediate
+9 = MEM   direct
+a = MEM indirect
 
 # Mnemonic code
 add $r1   # acc += $r1        # direct

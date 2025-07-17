@@ -32,7 +32,6 @@ void CPU::reset() {
 	// clear memory
 	this->mem_ptr->clear();
 
-
 	this->running = false;
 }
 
@@ -96,14 +95,16 @@ void CPU::cycle() {
 	}
 	
 	// 1 operand
-	AddrMode opd1_addr_mode = decode_mode_opd1(this->ri.read());
+	AddrMode opd1_addr_mode = decode_mode_opd(this->ri.read());
 
 	#ifdef DEBUG
 	std::cout << "OPD1 MODE: " << static_cast<int>(opd1_addr_mode) << "(";
 	switch (opd1_addr_mode) {
 		case AddrMode::immediate: std::cout << "IMMEDIATE"; break;
-		case AddrMode::indirect: std::cout << "INDIRECT"; break;
-		case AddrMode::direct: std::cout << "DIRECT"; break;
+		case AddrMode::reg_direct: std::cout << "REG DIRECT"; break;
+		case AddrMode::reg_indirect: std::cout << "REG INDIRECT"; break;
+		case AddrMode::mem_direct: std::cout << "MEM DIRECT"; break;
+		case AddrMode::mem_indirect: std::cout << "MEM INDIRECT"; break;
 	}
 	std::cout << ")\n";
 	#endif
@@ -114,18 +115,14 @@ void CPU::cycle() {
 	this->pc->write(this->pc->read() + 1);
 
 	switch (opd1_addr_mode) {
-		case AddrMode::direct:    opd_1 = this->mem_ptr->read(opd_1); break;
-		case AddrMode::indirect:  opd_1 = this->mem_ptr->read(this->mem_ptr->read(opd_1)); break;
 		case AddrMode::immediate: break;
-	}
 
-	/*
-	switch (opd1_addr_mode) {
-		case AddrMode::direct:    opd_1 = this->reg_file.read(opd_1); break;
-		case AddrMode::indirect:  opd_1 = this->mem_ptr->read(this->reg_file.read(opd_1)); break;
-		case AddrMode::immediate: break;
+		case AddrMode::reg_direct:   opd_1 = this->reg_file.read(opd_1); break;
+		case AddrMode::reg_indirect: opd_1 = this->reg_file.read(this->reg_file.read(opd_1)); break;
+
+		case AddrMode::mem_direct:   opd_1 = this->mem_ptr->read(opd_1); break;
+		case AddrMode::mem_indirect: opd_1 = this->mem_ptr->read(this->mem_ptr->read(opd_1)); break;
 	}
-	*/
 
 	switch (base_opcode) {
 		case 02: i_add(opd_1); return;
@@ -144,14 +141,16 @@ void CPU::cycle() {
 	}
 
 	// 2 operands
-	AddrMode opd2_addr_mode = decode_mode_opd2(this->ri.read());
+	AddrMode opd2_addr_mode = decode_mode_opd(this->ri.read()>>4);
 
 	#ifdef DEBUG
 	std::cout << "OPD2 MODE: " << static_cast<int>(opd2_addr_mode) << "(";
 	switch (opd2_addr_mode) {
-		case AddrMode::direct: std::cout << "DIRECT"; break;
-		case AddrMode::indirect: std::cout << "INDIRECT"; break;
 		case AddrMode::immediate: std::cout << "IMMEDIATE"; break;
+		case AddrMode::reg_direct: std::cout << "REG DIRECT"; break;
+		case AddrMode::reg_indirect: std::cout << "REG INDIRECT"; break;
+		case AddrMode::mem_direct: std::cout << "MEM DIRECT"; break;
+		case AddrMode::mem_indirect: std::cout << "MEM INDIRECT"; break;
 	}
 	std::cout << ")\n";
 	#endif
@@ -162,18 +161,14 @@ void CPU::cycle() {
 	this->pc->write(this->pc->read() + 1);
 
 	switch (opd2_addr_mode) {
-		case AddrMode::direct:    opd_2 = this->mem_ptr->read(opd_2); break;
-		case AddrMode::indirect:  opd_2 = this->mem_ptr->read(this->mem_ptr->read(opd_2)); break;
 		case AddrMode::immediate: break;
-	}
 
-	/*
-	switch (opd2_addr_mode) {
-		case AddrMode::direct:    opd_2 = this->reg_file.read(opd_2); break;
-		case AddrMode::indirect:  opd_2 = this->mem_ptr->read(this->reg_file.read(opd_2)); break;
-		case AddrMode::immediate: break;
+		case AddrMode::reg_direct:   opd_2 = this->reg_file.read(opd_2); break;
+		case AddrMode::reg_indirect: opd_2 = this->reg_file.read(this->reg_file.read(opd_2)); break;
+
+		case AddrMode::mem_direct:   opd_2 = this->mem_ptr->read(opd_2); break;
+		case AddrMode::mem_indirect: opd_2 = this->mem_ptr->read(this->mem_ptr->read(opd_2)); break;
 	}
-	*/
 
 	switch (base_opcode) {
 		case 13: i_copy_r(opd_1, opd_2); break;
@@ -231,16 +226,14 @@ void CPU::i_call(word_t opd1) { // TODO
 
 void CPU::i_copy_r(word_t opd1, word_t opd2) {
 	#ifdef DEBUG
-	// std::cout << "COPY REG(" << opd1 << ", " << opd2 <<  ")\n";
-	std::cout << "COPY REG[" << opd1 << "] = " << opd2 <<  "\n";
+	std::cout << "COPY REG[" << opd1 << "] = " << opd2 << "\n";
 	#endif
 	this->reg_file.write(opd1, opd2);
 }
 
 void CPU::i_copy_m(word_t opd1, word_t opd2) {
 	#ifdef DEBUG
-	// std::cout << "COPY MEM(" << opd1 << ", " << opd2 <<  ")\n";
-	std::cout << "COPY MEM[" << opd1 << "] = " << opd2 <<  "\n";
+	std::cout << "COPY MEM[" << opd1 << "] = " << opd2 << "\n";
 	#endif
 	this->mem_ptr->write(opd1, opd2);
 }

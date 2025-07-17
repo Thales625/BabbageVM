@@ -10,21 +10,22 @@ private:
 	size_t start_index, end_index;
 };
 
-enum class AddrMode { direct, indirect, immediate };
+enum class AddrMode { immediate, reg_direct, reg_indirect, mem_direct, mem_indirect };
 
-inline AddrMode decode_mode_opd1(word_t instr) {
-	instr &= 0b11;
-	if (instr == 0b00) return AddrMode::direct;
-	if (instr == 0b01) return AddrMode::indirect;
-	if (instr == 0b10) return AddrMode::immediate;
-	return AddrMode::immediate;
-}
+inline AddrMode decode_mode_opd(word_t instr) {
+	instr &= 0b111;
 
-inline AddrMode decode_mode_opd2(word_t instr) {
-	instr &= 0b110000;
-	if (instr == 0b000000) return AddrMode::direct;
-	if (instr == 0b010000) return AddrMode::indirect;
-	if (instr == 0b100000) return AddrMode::immediate;
+	if (instr == 0b000) return AddrMode::immediate;
+
+	if (instr & 0b100 == 0b100) {
+		instr &= 0b011;
+		if (instr == 0b00) return AddrMode::mem_direct;
+		if (instr == 0b01) return AddrMode::mem_indirect;
+	} else {
+		instr &= 0b011;
+		if (instr == 0b00) return AddrMode::reg_direct;
+		if (instr == 0b01) return AddrMode::reg_indirect;
+	}
 	return AddrMode::immediate;
 }
 
