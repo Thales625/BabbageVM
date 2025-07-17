@@ -8,3 +8,6 @@
 vm/build/
 vm/.vscode/
 vm/doc.pdf
+
+# macro
+macro/*.bbg

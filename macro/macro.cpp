@@ -11,7 +11,7 @@ namespace {
         std::vector<std::string> args;
         std::vector<std::string> body;
     };
-    
+
     std::vector<std::string> tokenize_args(const std::string& line) {
         std::vector<std::string> tokens;
         size_t l = line.find('(');
@@ -112,9 +112,7 @@ namespace Macro {
                     active = true;
                     iss >> n_macro.name;
                     std::string arg;
-                    while (iss >> arg) {
-                        n_macro.args.push_back(arg);
-                    }
+                    while (iss >> arg) n_macro.args.push_back(arg);
                 } else { // normal line
                     if (first_word.find('(') != std::string::npos) { // macro call
                         auto expanded = solve_macro(line, macros);

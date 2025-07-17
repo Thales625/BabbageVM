@@ -1,20 +1,23 @@
 #include "macro.hpp"
 
 #include <iostream>
+#include <fstream>
 
-int main() {
-    std::vector<std::string> lines = {
-        ".macro subtrair %x %y",
-        "sub %x %y",
-        ".end_macro",
+int main(int argc, char* argv[]) {
+    std::string filename = argv[1];
+    std::ifstream infile(filename);
 
-        ".macro adicionar %x %y",
-        "sum %x %y",
-        "subtrair(%y %x)",
-        ".end_macro",
+    if (!infile) {
+        std::cerr << "Error: Cannot open file '" << filename << "'" << std::endl;
+        return 1;
+    }
 
-        "adicionar(1 2)"
-    };
+    std::vector<std::string> lines;
+
+	std::string line;
+	while (std::getline(infile, line)) {
+		lines.push_back(line);
+	}
 
     std::vector<std::string> processed_lines = Macro::process(lines);
 
