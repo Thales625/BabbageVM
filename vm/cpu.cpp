@@ -5,8 +5,6 @@
 #include <chrono>
 #include <thread>
 
-#define DEBUG
-
 // ctor
 CPU::CPU(Memory<word_t> *n_mem_ptr) : mem_ptr(n_mem_ptr), reg_file(16) {
 	this->acc = this->reg_file.get_register(REGS::ACC);

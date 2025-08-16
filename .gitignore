@@ -3,6 +3,7 @@
 .vscode/
 */main
 */main.exe
+*/*.bbg
 
 # vm
 vm/build/
