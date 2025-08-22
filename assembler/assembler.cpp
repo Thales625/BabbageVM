@@ -39,6 +39,11 @@ void Assembler::assemble(const std::string& filename) {
 
     this->firstPass(infile);
 
+    // print symbol table
+    // for (auto& pair : this->symTable) {
+    //     std::cout << pair.first << " | " << pair.second << "\n";
+    // }
+
     this->secondPass(infile, "bin/assembler_out");
 
     /*
@@ -182,6 +187,8 @@ void Assembler::secondPass(std::ifstream& src, const std::string& filename) {
             continue;
         }
 
+        // std::cout << line << "\n";
+
         std::vector<std::string> tokens = tokenize(line);
         if(tokens.empty()) continue;
 
@@ -189,13 +196,23 @@ void Assembler::secondPass(std::ifstream& src, const std::string& filename) {
         std::string label, opcode, operand1, operand2;
 
         if(line[0] != ' ' && line[0] != '\t'){
-            label = tokens[idx++];
+            label = tokens[idx];
+            if(label == "START" || label == "END" || label == "STACK" || label == "INTDEF" || label == "INTUSE") {
+                // label = tokens[idx++];
+                idx++;
+            }
         }
 
         // extract opcode and operands (if it exists in current line)
         if(idx < tokens.size()) opcode = tokens[idx++];
         if(idx < tokens.size()) operand1 = tokens[idx++];
         if(idx < tokens.size()) operand2 = tokens[idx++];
+
+        for (auto& token : tokens) {
+            std::cout << token << " ";
+        }
+
+        std::cout << "label: " << label << " | opcode: " << opcode << " | opd1: " << operand1 << " | opd2: " << operand2 << "\n";
 
         int instruction = 0;
         int val1 = 0, val2 = 0;

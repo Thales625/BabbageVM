@@ -7,14 +7,14 @@
 
 OPD
  reg)
-  X000 = 0 -> immediate
-  X001 = 1 -> direct
-  X010 = 2 -> indirect
+  X000 = 0 -> direct
+  X001 = 1 -> indirect
+  X010 = 2 -> immediate
 
  mem)
-  X100 = 8 -> immediate
-  X101 = 9 -> direct
-  X110 = a -> indirect
+  X100 = 8 -> direct
+  X101 = 9 -> indirect
+  X110 = a -> immediate
 
 hex = 0xOOaA
 
@@ -29,18 +29,14 @@ a: addrs mode operand2
 4-6 = opd2 addrs mode
 
 Address
-0 = REG immediate
-1 = REG   direct
-2 = REG indirect
-
-8 = MEM immediate
-9 = MEM   direct
-a = MEM indirect
+X*00 = REG/MEM   direct
+X*01 = REG/MEM indirect
+X*10 = REG/MEM immediate
 
 # Mnemonic code
-add  $r1  # acc += $r1        # direct
-add ($r1) # acc += mem[$r1]   # indirect
-add imm   # acc += immediate  # immediate
+add   x   # acc += reg[x] # direct
+add ,Ix   # acc += mem[x] # indirect
+add  #x   # acc += v      # immediate
 
 
 OPCODE table
