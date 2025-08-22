@@ -1,5 +1,6 @@
 #include "assembler.hpp"
 
+#include "utils.hpp"
 #include "vm_types.hpp"
 
 #include <iostream>
@@ -54,35 +55,6 @@ void Assembler::assemble(const std::string& filename) {
     #endif
 
     this->secondPass(infile, "bin/assembler_out");
-}
-
-bool Assembler::isComment(const std::string& line) const {
-    return !line.empty() && line[0] == '*';
-}
-
-bool Assembler::lineTooLong(const std::string& line) const {
-    return line.length() > 80;
-}
-
-uint16_t Assembler::encodeInstruction(uint8_t opcode, uint8_t addrMode1, uint8_t addrMode2) const {
-    return (opcode << 8) | (addrMode2 << 4) | addrMode1;
-}
-
-std::vector<std::string> Assembler::tokenize(const std::string& line) const {
-    std::stringstream ss(line);
-    std::string token;
-    std::vector<std::string> tokens;
-    while(ss >> token) {
-        tokens.push_back(token);
-    }
-    
-    return tokens;
-}
-
-std::string Assembler::toHex4(int val) const {
-    std::stringstream ss;
-    ss << std::hex << std::setw(4) << std::setfill('0') << val;
-    return ss.str();
 }
 
 void Assembler::firstPass(std::ifstream& src) {
@@ -289,7 +261,6 @@ void Assembler::secondPass(std::ifstream& src, const std::string& filename) {
             lst << toHex4(pc) << "  " << toHex4(val2) << std::endl;
             pc++;
         }
-
     }
 
     // error report
@@ -304,4 +275,28 @@ void Assembler::secondPass(std::ifstream& src, const std::string& filename) {
     
     obj.close();
     lst.close();
+}
+
+// STATIC methods
+bool Assembler::isComment(const std::string& line) {
+    return !line.empty() && line[0] == '*';
+}
+
+bool Assembler::lineTooLong(const std::string& line) {
+    return line.length() > 80;
+}
+
+uint16_t Assembler::encodeInstruction(uint8_t opcode, uint8_t addrMode1, uint8_t addrMode2) {
+    return (opcode << 8) | (addrMode2 << 4) | addrMode1;
+}
+
+std::vector<std::string> Assembler::tokenize(const std::string& line) {
+    std::stringstream ss(line);
+    std::string token;
+    std::vector<std::string> tokens;
+    while(ss >> token) {
+        tokens.push_back(token);
+    }
+    
+    return tokens;
 }

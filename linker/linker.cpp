@@ -1,7 +1,11 @@
 #include "linker.hpp"
+
 #include <fstream>
+#include <sstream>
 #include <iostream>
+
 #include <stdexcept>
+#include <algorithm>
 
 #define DEBUG
 

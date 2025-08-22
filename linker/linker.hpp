@@ -1,16 +1,12 @@
 #pragma once
 
-#include "linkerutils.hpp"
 #include "vm_types.hpp"
+#include "utils.hpp"
 
 #include <string>
 #include <vector>
 #include <map>
 
-enum class RelocationMode {
-    FullLinkerRelocation,    // Carregador Absoluto
-    PartialLinkerRelocation  // Carregador Relocador
-};
 
 class Linker{
 public:

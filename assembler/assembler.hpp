@@ -1,4 +1,5 @@
 #pragma once
+
 #include <string>
 #include <vector>
 #include <map>
@@ -18,16 +19,13 @@ private:
     int startAddress = 0;
 
     // Checks if a line is a comment by searching for the '*' character at the start of the line.
-    bool isComment(const std::string& line) const;
+    static bool isComment(const std::string& line);
 
     // Checks if a line is too long (>80 characters).
-    bool lineTooLong(const std::string& line) const;
+    static bool lineTooLong(const std::string& line);
 
     // Splits a line into tokens to be later used in parsing shenanigans.
-    std::vector<std::string> tokenize(const std::string& line) const;
-
-    // Helper function to format addresses in 4-digit hex
-    std::string toHex4(int val) const;
+    static std::vector<std::string> tokenize(const std::string& line);
 
     /**
      * @brief 			Encodes a 16-bit instruction word using opcode and operand addressing modes
@@ -36,7 +34,7 @@ private:
      * @param addrMode2 Addressing mode of the second operand
      * @return 			16-bit encoded instruction word
      */
-    uint16_t encodeInstruction(uint8_t opcode, uint8_t addrMode1, uint8_t addrMode2) const;
+    static uint16_t encodeInstruction(uint8_t opcode, uint8_t addrMode1, uint8_t addrMode2);
 
 
     /**

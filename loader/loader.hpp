@@ -4,9 +4,9 @@
 #include <fstream>
 #include <iostream>
 
+#include "utils.hpp"
 #include "memory.hpp"
 #include "cpu.hpp"
-#include "linkerutils.hpp"
 
 class Loader {
 public:
