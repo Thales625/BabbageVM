@@ -37,8 +37,6 @@ file(GLOB_RECURSE SOURCES
     ${PROJECT_SOURCE_DIR}/main.cpp
 )
 
-list(FILTER SOURCES EXCLUDE REGEX "CMakeFiles")
-
 # --- EXECUTABLE ---
 add_executable(BabbageVM ${SOURCES})
 
