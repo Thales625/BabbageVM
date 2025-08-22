@@ -7,6 +7,8 @@
 #include <sstream>
 #include <iomanip>
 
+// #define DEBUG
+
 // opcodes, not finished!
 // TODO: different write instructions for r and i
 std::map<std::string, word_t> opcodeTable = {
@@ -40,9 +42,12 @@ void Assembler::assemble(const std::string& filename) {
     this->firstPass(infile);
 
     // print symbol table
+    #ifdef DEBUG
+    std::cout << "Symble table:\n";
     for (auto& pair : this->symTable) {
         std::cout << pair.first << ": " << pair.second << "\n";
     }
+    #endif
 
     this->secondPass(infile, "bin/assembler_out");
 }
@@ -105,7 +110,7 @@ void Assembler::firstPass(std::ifstream& src) {
             if(symTable.count(label)){
                 errors.push_back("linha " + std::to_string(numLine) + ": símbolo redefinido(" + label + ").");
             }else{
-                symTable[label] = locationCounter; //maps the label to its respective memory address
+                symTable[label] = numLine; //maps the label to its respective memory address
             }
         }
 
@@ -178,20 +183,15 @@ void Assembler::secondPass(std::ifstream& src, const std::string& filename) {
             continue;
         }
 
-        // std::cout << line << "\n";
-
         std::vector<std::string> tokens = tokenize(line);
         if(tokens.empty()) continue;
 
         int idx = 0;
         std::string label, opcode, operand1, operand2;
 
-        if(line[0] != ' ' && line[0] != '\t'){
-            label = tokens[idx];
-            if(label == "START" || label == "END" || label == "STACK" || label == "INTDEF" || label == "INTUSE") {
-                // label = tokens[idx++];
-                idx++;
-            }
+        // label check in the first column
+        if(line[0] != ' ' && line[0] != '\t') {
+            label = tokens[idx++];
         }
 
         // extract opcode and operands (if it exists in current line)
@@ -199,7 +199,9 @@ void Assembler::secondPass(std::ifstream& src, const std::string& filename) {
         if(idx < tokens.size()) operand1 = tokens[idx++];
         if(idx < tokens.size()) operand2 = tokens[idx++];
 
-        // std::cout << "label: " << label << " | opcode: " << opcode << " | opd1: " << operand1 << " | opd2: " << operand2 << "\n";
+        #ifdef DEBUG
+        std::cout << "label: " << label << " | opcode: " << opcode << " | opd1: " << operand1 << " | opd2: " << operand2 << "\n";
+        #endif
 
         int instruction = 0;
         int val1 = 0, val2 = 0;
