@@ -31,7 +31,8 @@ a: addrs mode operand2
 Address
 X*00 = REG/MEM   direct
 X*01 = REG/MEM indirect
-X*10 = REG/MEM immediate
+
+XX10 = immediate
 
 # Mnemonic code
 add   x   # acc += reg[x] # direct

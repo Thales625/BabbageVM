@@ -15,13 +15,13 @@ enum class AddrMode { immediate, reg_direct, reg_indirect, mem_direct, mem_indir
 inline AddrMode decode_mode_opd(word_t instr) {
 	instr &= 0b111;
 
-	if (instr == 0b000) return AddrMode::immediate;
+	if (instr == 0b10) return AddrMode::immediate;
 
-	if (instr & 0b100 == 0b100) {
+	if (instr & 0b100 == 0b100) { // MEM
 		instr &= 0b011;
 		if (instr == 0b00) return AddrMode::mem_direct;
 		if (instr == 0b01) return AddrMode::mem_indirect;
-	} else {
+	} else { // REG
 		instr &= 0b011;
 		if (instr == 0b00) return AddrMode::reg_direct;
 		if (instr == 0b01) return AddrMode::reg_indirect;
