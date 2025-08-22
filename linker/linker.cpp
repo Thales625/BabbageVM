@@ -3,21 +3,18 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <iomanip>
 
+#include <string>
 #include <stdexcept>
 #include <algorithm>
+#include <iterator>
 
 #define DEBUG
 
+#define TAG "LINKER"
+
 Linker::Linker(RelocationMode mode) : currentRelocationMode(mode) {}
-
-void Linker::reportError(const std::string& message) const {
-    std::cerr << "Error: " << message << std::endl;
-}
-
-void Linker::reportWarning(const std::string& message) const {
-    std::cout << "Warning: " << message << std::endl;
-}
 
 void Linker::firstPass(const std::vector<std::string>& objFileNames){
     int currentLoadAddress = 0;
@@ -39,16 +36,23 @@ void Linker::firstPass(const std::vector<std::string>& objFileNames){
         }
 
         #ifdef DEBUG
-        std::cout << "Module code:\n";
+        PRINT("Module Symbol table:\n")
+        for (auto& entry : module.symbolTable) {
+            PRINT("name: " << entry.name << " | addrs: " << entry.relativeAddress << "\n")
+        }
+
+        std::cout << "\n";
+
+        PRINT("Module code:\n")
         for (auto& line : module.code) {
-            std::cout << "Line: " << line << "\n";
+            PRINT("Line: " << line << "\n")
         }
         #endif
 
         loadedModules.push_back(module);
 
         //processar a tabela de definicoes para construir a tabela global de simbolos
-        for (const auto& symbol : module.definitionTable){
+        for (const auto& symbol : module.symbolTable){
             int absoluteAddress = currentLoadAddress + symbol.relativeAddress;
 
             if (globalSymbolTable.count(symbol.name)) {
@@ -97,7 +101,7 @@ void Linker::secondPass(const std::string& outputFileName) {
     }
 
     outputFile.close();
-    std::cout << "Ligacao concluida com sucesso. Executavel gerado: " << outputFileName << std::endl;
+    PRINT("Ligacao concluida com sucesso. Executavel gerado: " << outputFileName << std::endl)
 }
 
 // Novo método: Ligador que faz a relocação completa
@@ -108,30 +112,12 @@ void Linker::writeFullExecutable(std::ofstream& outputFile) {
         std::vector<word_t> moduleCode = module.code;
 
         // Relocação Interna
-        for (const auto& relEntry : module.relocationMap) {
+        for (const auto& relEntry : module.relocationTable) {
             if (relEntry.relativeAddress < moduleCode.size()) {
                  moduleCode[relEntry.relativeAddress] += currentLoadAddress;
             } else {
                  reportWarning("Relocation entry out of bounds for module " + module.name +
                                " at address " + std::to_string(relEntry.relativeAddress));
-            }
-        }
-
-        // Resolver Referências de Uso
-        for (const auto& useEntry : module.useTable) {
-            auto it = globalSymbolTable.find(useEntry.name);
-            if (it != globalSymbolTable.end()) {
-                word_t absoluteTargetAddress = it->second;
-                if (useEntry.relativeAddress < moduleCode.size()) {
-                    moduleCode[useEntry.relativeAddress] = absoluteTargetAddress;
-                } else {
-                    reportWarning("Use entry for symbol " + useEntry.name + " out of bounds for module " + module.name + " at address " + std::to_string(useEntry.relativeAddress));
-                }
-            } else {
-                reportError("Símbolo global nao definido: " + useEntry.name +
-                            " [módulo: " + module.name + "]");
-                outputFile.close();
-                return;
             }
         }
 
@@ -148,26 +134,7 @@ void Linker::writeRelocatableExecutable(std::ofstream& outputFile) {
     globalRelocationMap.clear(); // Limpa o mapa global
 
     for (ObjectModule& module : loadedModules) {
-        // Resolver Referências de Uso
-        for (const auto& useEntry : module.useTable) {
-            auto it = globalSymbolTable.find(useEntry.name);
-            if (it != globalSymbolTable.end()) {
-                word_t absoluteTargetAddress = it->second;
-                if (useEntry.relativeAddress < module.code.size()) {
-                    module.code[useEntry.relativeAddress] = absoluteTargetAddress;
-                } else {
-                     reportWarning("Use entry for symbol " + useEntry.name + " out of bounds for module " + module.name +
-                                  " at address " + std::to_string(useEntry.relativeAddress));
-                }
-            } else {
-                reportError("Símbolo global nao definido: " + useEntry.name +
-                            " [módulo: " + module.name + "]");
-                outputFile.close();
-                return;
-            }
-        }
-
-        for (const auto& relEntry : module.relocationMap) {
+        for (const auto& relEntry : module.relocationTable) {
             RelocationTableEntry globalEntry = relEntry;
             globalEntry.relativeAddress += currentLoadAddress; // Ajustar o offset para ser global
             globalRelocationMap.push_back(globalEntry);
@@ -189,12 +156,111 @@ void Linker::link(const std::vector<std::string>& objFileNames, const std::strin
     firstPass(objFileNames);
 
     #ifdef DEBUG
-    std::cout << totalProgramSize << " | " << entryPoint << "\n";
+    PRINT(totalProgramSize << " | " << entryPoint << "\n";)
     #endif
 
     if(totalProgramSize > 0 && entryPoint != -1) {
         secondPass(outputFileName);
     } else {
         reportError("Linking failed.");
+    }
+}
+
+void Linker::reportError(const std::string& message) {
+    PRINT_ERR(message << std::endl);
+}
+
+void Linker::reportWarning(const std::string& message) {
+    PRINT_WAR(message << std::endl);
+}
+
+
+
+void ObjectModule::readFromFile(const std::string& filename) {
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        PRINT_ERR("Error opening file: " << filename << std::endl)
+        throw std::runtime_error("File opening error");
+    }
+
+    std::string line;
+    enum Section {NONE, HEADER, TEXT, DATA, SYMBOL, RELOCS};
+    Section currentSection = NONE;
+
+    while (std::getline(file, line)){
+        PRINT("LINE: "<< line << "\n")
+
+        //tratamento de comentario e linhas vazias
+        if (line.empty() || line[0] == ';') continue;
+
+        if(line == "#HEADER") {
+            currentSection = HEADER;
+            continue;
+        } else if (line == "#TEXT_SECTION") {
+            currentSection = TEXT;
+            continue;
+        } else if (line == "#DATA_SECTION") {
+            PRINT("COCOCOCOCO\n")
+            currentSection = DATA;
+            continue;
+        } else if (line == "#SYMBOL_TABLE") {
+            currentSection = SYMBOL;
+            continue;
+        } else if (line == "#RELOCATION_TABLE") {
+            currentSection = RELOCS;
+            continue;
+        }
+
+        std::istringstream iss(line);
+        std::string key;
+
+        switch (currentSection) {
+            case HEADER: {
+                std::getline(iss, key);
+                if (key == "NAME") iss >> this->name;
+                else if (key == "SIZE") iss >> this->size;
+                else if (key == "START_ADDRESS") iss >> this->startAddress;
+                else if (key == "STACK_SIZE_REQ") iss >> this->stackSizeReq;
+                break;
+            }
+            case TEXT:{
+                std::string hexValStr;
+                iss >> hexValStr;
+                size_t commentPos = hexValStr.find('*'); //tratamento de comentario
+                if (commentPos != std::string::npos){
+                    hexValStr = hexValStr.substr(0, commentPos);
+                }
+                if (!hexValStr.empty()){
+                    this->code.push_back(static_cast<word_t>(hexStringtoint(hexValStr)));
+                }
+                break;
+            }
+            case DATA:{
+            }
+            case SYMBOL:{
+                SymbolTableEntry entry;
+                iss >> entry.name >> entry.relativeAddress;
+                this->symbolTable.push_back(entry);
+                break;
+            }
+            case RELOCS:{
+                RelocationTableEntry entry;
+                iss >> entry.relativeAddress;
+                this->relocationTable.push_back(entry);
+                break;
+            }
+            case NONE:
+            default:
+                break;
+        }
+
+    }
+    file.close();
+
+    //verificacao de precaucao
+    if (this->size == 0 && !this->code.empty()) {
+        this->size = this->code.size();
+    } else if (this->size != this->code.size() && this->size > 0) {
+        std::cerr << "Warning: Module size does not match code size." << std::endl;
     }
 }

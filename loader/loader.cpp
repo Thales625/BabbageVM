@@ -3,6 +3,8 @@
 #include <vector> 
 #include <iostream>
 
+#define TAG "LOADER"
+
 void Loader::loadAndExecute(const std::string& hpxFileName, CPU& cpu, Memory<word_t>& memory) {
     std::ifstream inputFile(hpxFileName, std::ios::binary);
     if (!inputFile.is_open()) {
@@ -34,12 +36,12 @@ void Loader::loadAndExecute(const std::string& hpxFileName, CPU& cpu, Memory<wor
         // Carregador Relocador
         size_t mapSize;
         inputFile.read(reinterpret_cast<char*>(&mapSize), sizeof(mapSize));
-        std::vector<RelocationTableEntry> relocationMap(mapSize);
-        inputFile.read(reinterpret_cast<char*>(relocationMap.data()), mapSize * sizeof(RelocationTableEntry));
+        std::vector<RelocationTableEntry> relocationTable(mapSize);
+        inputFile.read(reinterpret_cast<char*>(relocationTable.data()), mapSize * sizeof(RelocationTableEntry));
 
         // Relocação
         std::cout << "Carregador: Relocacao necessaria. Aplicando...\n";
-        for (const auto& relEntry : relocationMap) {
+        for (const auto& relEntry : relocationTable) {
             if (relEntry.relativeAddress < programCode.size()) {
                 programCode[relEntry.relativeAddress] += 0; // O endereço base de carga é 0 no seu caso (início da memória)
             } else {

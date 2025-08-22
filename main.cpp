@@ -22,8 +22,8 @@
 
 int main(int argc, char* argv[]) {
 	// VM
-	Memory<word_t> *mem_ptr = new Memory<word_t>(1024); // 2kB
-	CPU cpu(mem_ptr);
+	// Memory<word_t> *mem_ptr = new Memory<word_t>(1024); // 2kB
+	// CPU cpu(mem_ptr);
 
 	// UI
 	// UI ui;
@@ -31,33 +31,30 @@ int main(int argc, char* argv[]) {
 	// ui.run();
 
     // std::string filename = argv[1];
-
 	// std::vector<std::string> lines = Macro::ProcessFromFile(filename);
 	// save_file(lines, "bin/macro_out.bbg");
 
+	// std::cout << "------ASSEMBLER------\n";
+	// Assembler assembler;
+	// assembler.assemble("bin/macro_out.bbg");
 
-
-	Assembler assembler;
-	assembler.assemble("bin/macro_out.bbg");
-
+	std::cout << "------LINKER------\n";
 	Linker linker;
 	linker.link({"bin/assembler_out.OBJ"}, "bin/linker_out.hpx");
 
-	// for (auto& line : lines) {
-	// 	std::cout << line << "\n";
-	// }
-
 	return 0;
 
+	/*
 	#ifdef BITMAP
 	BitMap bitmap{mem_ptr, 100, 5, 5};
 	cpu.run(bitmap);
 	#else
 	cpu.run();
 	#endif
-
+	
 	cpu.print_state();
-
+	
 	delete mem_ptr;
 	return 0;
+	*/
 }

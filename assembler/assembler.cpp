@@ -12,8 +12,6 @@
 
 #define TAG "ASSEMBLER"
 
-#define PRINT(msg) { std::cout << TAG << "> " << msg; }
-
 // opcodes, not finished!
 // TODO: different write instructions for r and i
 std::map<std::string, word_t> opcodeTable = {
