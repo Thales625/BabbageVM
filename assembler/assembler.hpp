@@ -16,7 +16,9 @@ private:
     std::vector<std::string> lstOutput;
     std::vector<std::string> errors;
     int locationCounter = 0x0000;
+    // int dataCounter = 0x0000;
     int startAddress = 0;
+    std::string moduleName;
 
     // Checks if a line is a comment by searching for the '*' character at the start of the line.
     static bool isComment(const std::string& line);

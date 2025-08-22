@@ -244,6 +244,12 @@ void ObjectModule::readFromFile(const std::string& filename) {
                 break;
             }
             case DATA:{
+                std::string hexValStr;
+                iss >> hexValStr;
+                size_t commentPos = hexValStr.find('*'); //tratamento de comentario
+                if (commentPos != std::string::npos) hexValStr = hexValStr.substr(0, commentPos);
+                if (!hexValStr.empty())this->data.push_back(static_cast<word_t>(hexStringtoint(hexValStr)));
+                break;
             }
             case SYMBOL:{
                 SymbolTableEntry entry;

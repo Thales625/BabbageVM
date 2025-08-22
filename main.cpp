@@ -28,27 +28,28 @@ int main(int argc, char* argv[]) {
 	// UI
 	// UI ui;
 	// ui.setup(mem_ptr);
-	// ui.run();
 
-    // std::string filename = argv[1];
-	// std::vector<std::string> lines = Macro::ProcessFromFile(filename);
-	// save_file(lines, "bin/macro_out.bbg");
+    std::string filename = argv[1];
+	std::vector<std::string> lines = Macro::ProcessFromFile(filename);
+	save_file(lines, "bin/macro_out.bbg");
+	return 0;
 
 	// std::cout << "------ASSEMBLER------\n";
 	// Assembler assembler;
 	// assembler.assemble("bin/macro_out.bbg");
 
-	// std::cout << "------LINKER------\n";
-	// Linker linker;
-	// linker.link({"bin/assembler_out.OBJ"}, "bin/linker_out.hpx");
+	std::cout << "------LINKER------\n";
+	Linker linker;
+	linker.link({"bin/assembler_out.OBJ"}, "bin/linker_out.hpx");
 
 	std::cout << "------LOADER------\n";
 	word_t pc_entry = Loader::loadAndExecute("bin/linker_out.hpx", mem_ptr);
 
 	cpu.set_entry(pc_entry);
 	cpu.print_state();
-
 	// cpu.run();
+
+	// ui.run();
 
 	return 0;
 

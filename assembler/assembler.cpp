@@ -84,7 +84,6 @@ void Assembler::firstPass(std::ifstream& src) {
                 errors.push_back("linha " + std::to_string(numLine) + ": símbolo redefinido(" + label + ").");
             }else{
                 symTable[label] = locationCounter; //maps the label to its respective memory address
-                // symTable[label] = numLine; //maps the label to its respective memory address
             }
         }
 
@@ -92,21 +91,13 @@ void Assembler::firstPass(std::ifstream& src) {
             opcode = tokens[idx++];
 
         if(opcode == "START"){
+            if(loadingModule) {
+                errors.push_back("linha " + std::to_string(numLine) + ": START duplicado");
+                continue;
+            }
             if(idx < tokens.size()) {
-                std::string moduleName = tokens[idx];
-
-                if(symTable.count(moduleName)){
-                    // if previously defined (can cause a redefined symbol, dont care, solve later on the 2nd pass)
-                    errors.push_back("linha " + std::to_string(numLine) + ": símbolo redefinido(" + moduleName + ").");
-
-                    startAddress = symTable[moduleName];
-                    locationCounter = symTable[moduleName];
-                }else{
-                    // fallback: label not found yet, can be defined later
-                    startAddress = locationCounter;
-                    symTable[moduleName] = locationCounter;
-                }
-
+                moduleName = tokens[idx];
+                startAddress = locationCounter;
                 loadingModule = true;
             }
         }
@@ -121,7 +112,7 @@ void Assembler::firstPass(std::ifstream& src) {
             }else{
                 errors.push_back("linha " + std::to_string(numLine) + ": END sem START associado");
             }
-            // break; //get off
+            break; //get off
         }
         
         // if its not a directive, its a normal instruction -> 1 word
@@ -142,15 +133,22 @@ void Assembler::secondPass(std::ifstream& src, const std::string& filename) {
     src.clear();		//clear EOF flags
     src.seekg(0);		//move cursor to the start
 
-    obj << "#DEFINITION_TABLE\n";
-    lst << "#DEFINITION_TABLE\n";
+    // ---------- HEADER ----------
+    obj << "#HEADER" << std::endl;
+    obj << "NAME " << moduleName << std::endl;
+    obj << "SIZE " << moduleName << std::endl;
+
+    // ---------- SYMBOL TABLE ----------
+    obj << "#SYMBOL_TABLE" << std::endl;
+    lst << "#SYMBOL_TABLE" << std::endl;
     for (auto& pair : this->symTable) {
         obj << pair.first << ": " << pair.second << "\n";
         lst << pair.first << ": " << pair.second << "\n";
     }
     
-    obj << "#CODE_SECTION\n";
-    lst << "#CODE_SECTION\n";
+    // ---------- CODE SECTION ----------
+    obj << "#CODE_SECTION" << std::endl;
+    lst << "#CODE_SECTION" << std::endl;
     while(getline(src, line)) {
         numLine++;
 
@@ -196,6 +194,7 @@ void Assembler::secondPass(std::ifstream& src, const std::string& filename) {
             }
         }else if(opcode == "SPACE") {
             instruction = 0;
+            continue;
         }else if(opcode == "START" || opcode == "END" || opcode == "STACK" || opcode == "INTDEF" || opcode == "INTUSE"){
             lst << "      " << "      " << "   " << line << std::endl;
             continue;
@@ -246,7 +245,7 @@ void Assembler::secondPass(std::ifstream& src, const std::string& filename) {
         }
 
         obj << toHex4(instruction) << std::endl;
-        lst << toHex4(pc) << "  " << toHex4(instruction) << "   " << line << std::endl;
+        lst << toHex4(pc) << "  " << toHex4(instruction) << "  " << line << std::endl;
         pc++;
 
         if(!operand1.empty()){
@@ -260,6 +259,7 @@ void Assembler::secondPass(std::ifstream& src, const std::string& filename) {
             pc++;
         }
     }
+
 
     // error report
     lst << std::endl;

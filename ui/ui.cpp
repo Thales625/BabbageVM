@@ -171,7 +171,7 @@ void UI::run() {
 
 				for(int row = 0; row < rows; row++){
 					int addr = offset + row * bytes_row;
-					if(addr >= this->mem_ptr->get_size()) break;
+					if(addr >= this->mem_ptr->get_addressable_size()) break;
 
 					ImGui::TableNextRow();
 					ImGui::TableSetColumnIndex(0);
@@ -184,7 +184,7 @@ void UI::run() {
 						int index = addr + col;
 						ImGui::TableSetColumnIndex(col + 1);
 
-						if (index < this->mem_ptr->get_size()) {
+						if (index < this->mem_ptr->get_addressable_size()) {
 							int val = this->mem_ptr->read(index);
 							ImGui::PushID(index);
 							ImGui::SetNextItemWidth(30);

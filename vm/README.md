@@ -64,25 +64,25 @@ add #x  ;  acc = x  ;  imediato
 
 ## Tabela de Instruções (Opcode)
 
-| Opcode | Mnemonic | Operandos        |
-|--------|----------|------------------|
-| `00`   | BR       | (opd_1)          |
-| `01`   | BRPOS    | (opd_1)          |
-| `02`   | ADD      | (opd_1)          |
-| `03`   | LOAD     | (opd_1)          |
-| `04`   | BRZERO   | (opd_1)          |
-| `05`   | BRNEG    | (opd_1)          |
-| `06`   | SUB      | (opd_1)          |
-| `07`   | STORE    | (opd_1)          |
-| `10`   | DIVIDE   | (opd_1)          |
-| `11`   | STOP     | -                |
-| `13`   | COPY_R   | (opd_1, opd_2)   |
-| `14`   | MULT     | (opd_1)          |
-| `15`   | CALL     | (opd_1)          |
-| `16`   | RET      | -                |
-| `17`   | PUSH     | (opd_1)          |
-| `18`   | POP      | (opd_1)          |
-| `19`   | COPY_M   | (opd_1, opd_2)   |
+| Opcode | Mnemonic | Operandos      |
+|--------|----------|----------------|
+| `00`   | BR       | (opd_1)        |
+| `01`   | BRPOS    | (opd_1)        |
+| `02`   | ADD      | (opd_1)        |
+| `03`   | LOAD     | (opd_1)        |
+| `04`   | BRZERO   | (opd_1)        |
+| `05`   | BRNEG    | (opd_1)        |
+| `06`   | SUB      | (opd_1)        |
+| `07`   | STORE    | (opd_1)        |
+| `10`   | DIVIDE   | (opd_1)        |
+| `11`   | STOP     | -              |
+| `13`   | COPY_R   | (opd_1, opd_2) |
+| `14`   | MULT     | (opd_1)        |
+| `15`   | CALL     | (opd_1)        |
+| `16`   | RET      | -              |
+| `17`   | PUSH     | (opd_1)        |
+| `18`   | POP      | (opd_1)        |
+| `19`   | COPY_M   | (opd_1, opd_2) |
 
 ---
 
