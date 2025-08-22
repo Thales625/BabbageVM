@@ -3,6 +3,8 @@
 #include <iostream>
 #include <stdexcept>
 
+#define DEBUG
+
 Linker::Linker(RelocationMode mode) : currentRelocationMode(mode) {}
 
 void Linker::reportError(const std::string& message) const {
@@ -31,6 +33,13 @@ void Linker::firstPass(const std::vector<std::string>& objFileNames){
             reportError(e.what());
             return;
         }
+
+        #ifdef DEBUG
+        std::cout << "Module code:\n";
+        for (auto& line : module.code) {
+            std::cout << "Line: " << line << "\n";
+        }
+        #endif
 
         loadedModules.push_back(module);
 
@@ -175,7 +184,9 @@ void Linker::writeRelocatableExecutable(std::ofstream& outputFile) {
 void Linker::link(const std::vector<std::string>& objFileNames, const std::string& outputFileName) {
     firstPass(objFileNames);
 
+    #ifdef DEBUG
     std::cout << totalProgramSize << " | " << entryPoint << "\n";
+    #endif
 
     if(totalProgramSize > 0 && entryPoint != -1) {
         secondPass(outputFileName);

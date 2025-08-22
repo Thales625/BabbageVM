@@ -23,6 +23,8 @@ void ObjectModule::readFromFile(const std::string& filename) {
     Section currentSection = NONE;
 
     while (std::getline(file, line)){
+        std::cout << "LINE: "<< line << "\n";
+
         //tratamento de comentario e linhas vazias
         if (line.empty() || line[0] == ';') continue;
 
@@ -58,7 +60,7 @@ void ObjectModule::readFromFile(const std::string& filename) {
             case CODE:{
                 std::string hexValStr;
                 iss >> hexValStr;
-                size_t commentPos = hexValStr.find(';');//tratamento de comantario
+                size_t commentPos = hexValStr.find(';');//tratamento de comentario
                 if (commentPos != std::string::npos){
                     hexValStr = hexValStr.substr(0, commentPos);
                 }

@@ -26,6 +26,7 @@ int main(int argc, char* argv[]) {
 
 	Assembler assembler;
 	assembler.assemble("bin/macro_out.bbg");
+	return 0;
 
 	Linker linker;
 	linker.link({"bin/assembler_out.OBJ"}, "bin/linker_out.hpx");

@@ -7,7 +7,7 @@
 #include <sstream>
 #include <iomanip>
 
-// #define DEBUG
+#define DEBUG
 
 // opcodes, not finished!
 // TODO: different write instructions for r and i
@@ -110,7 +110,8 @@ void Assembler::firstPass(std::ifstream& src) {
             if(symTable.count(label)){
                 errors.push_back("linha " + std::to_string(numLine) + ": símbolo redefinido(" + label + ").");
             }else{
-                symTable[label] = numLine; //maps the label to its respective memory address
+                symTable[label] = locationCounter; //maps the label to its respective memory address
+                // symTable[label] = numLine; //maps the label to its respective memory address
             }
         }
 
@@ -119,20 +120,18 @@ void Assembler::firstPass(std::ifstream& src) {
 
         if(opcode == "START"){
             if(idx < tokens.size()) {
-                std::string startLabel = tokens[idx];
+                std::string moduleName = tokens[idx];
 
-                if(isdigit(startLabel[0])){
-                    // if digit, just get the address and pass it to lc
-                    startAddress = std::stoi(startLabel);
-                    locationCounter = startAddress;
-                }else if(symTable.count(startLabel)){
+                if(symTable.count(moduleName)){
                     // if previously defined (can cause a redefined symbol, dont care, solve later on the 2nd pass)
-                    startAddress = symTable[startLabel];
-                    locationCounter = symTable[startLabel];
+                    errors.push_back("linha " + std::to_string(numLine) + ": símbolo redefinido(" + moduleName + ").");
+
+                    startAddress = symTable[moduleName];
+                    locationCounter = symTable[moduleName];
                 }else{
                     // fallback: label not found yet, can be defined later
                     startAddress = locationCounter;
-                    symTable[startLabel] = locationCounter;
+                    symTable[moduleName] = locationCounter;
                 }
 
                 foundStart = true;
@@ -149,7 +148,7 @@ void Assembler::firstPass(std::ifstream& src) {
             }else{
                 errors.push_back("linha " + std::to_string(numLine) + ": END sem START associado");
             }
-            break; //get off
+            // break; //get off
         }
         
         // if its not a directive, its a normal instruction -> 1 word
@@ -170,6 +169,15 @@ void Assembler::secondPass(std::ifstream& src, const std::string& filename) {
     src.clear();		//clear EOF flags
     src.seekg(0);		//move cursor to the start
 
+    obj << "#DEFINITION_TABLE\n";
+    lst << "#DEFINITION_TABLE\n";
+    for (auto& pair : this->symTable) {
+        obj << pair.first << ": " << pair.second << "\n";
+        lst << pair.first << ": " << pair.second << "\n";
+    }
+    
+    obj << "#CODE_SECTION\n";
+    lst << "#CODE_SECTION\n";
     while(getline(src, line)) {
         numLine++;
 
