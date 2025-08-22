@@ -40,9 +40,9 @@ void Assembler::assemble(const std::string& filename) {
     this->firstPass(infile);
 
     // print symbol table
-    // for (auto& pair : this->symTable) {
-    //     std::cout << pair.first << " | " << pair.second << "\n";
-    // }
+    for (auto& pair : this->symTable) {
+        std::cout << pair.first << ": " << pair.second << "\n";
+    }
 
     this->secondPass(infile, "bin/assembler_out");
 }

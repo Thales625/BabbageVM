@@ -20,16 +20,15 @@
 
 int main(int argc, char* argv[]) {
     // std::string filename = argv[1];
+
 	// std::vector<std::string> lines = Macro::ProcessFromFile(filename);
 	// save_file(lines, "bin/macro_out.bbg");
 
-	// Assembler assembler;
-	// assembler.assemble("bin/macro_out.bbg");
+	Assembler assembler;
+	assembler.assemble("bin/macro_out.bbg");
 
 	Linker linker;
 	linker.link({"bin/assembler_out.OBJ"}, "bin/linker_out.hpx");
-	
-	return 0;
 
 	// for (auto& line : lines) {
 	// 	std::cout << line << "\n";
