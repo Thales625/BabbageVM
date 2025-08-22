@@ -11,8 +11,12 @@ class Memory {
 public:
 	Memory(std::size_t size) : data(size, 0) {};
 
-	size_t get_size() const {
+	size_t get_addressable_size() const {
 		return this->data.size();
+	};
+
+	size_t get_size() const {
+		return this->data.size() * sizeof(T);
 	};
 
 	T read(address_t address) const {

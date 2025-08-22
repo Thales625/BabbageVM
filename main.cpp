@@ -22,8 +22,8 @@
 
 int main(int argc, char* argv[]) {
 	// VM
-	// Memory<word_t> *mem_ptr = new Memory<word_t>(1024); // 2kB
-	// CPU cpu(mem_ptr);
+	Memory<word_t> *mem_ptr = new Memory<word_t>(1024); // 2kB
+	CPU cpu(mem_ptr);
 
 	// UI
 	// UI ui;
@@ -38,9 +38,17 @@ int main(int argc, char* argv[]) {
 	// Assembler assembler;
 	// assembler.assemble("bin/macro_out.bbg");
 
-	std::cout << "------LINKER------\n";
-	Linker linker;
-	linker.link({"bin/assembler_out.OBJ"}, "bin/linker_out.hpx");
+	// std::cout << "------LINKER------\n";
+	// Linker linker;
+	// linker.link({"bin/assembler_out.OBJ"}, "bin/linker_out.hpx");
+
+	std::cout << "------LOADER------\n";
+	word_t pc_entry = Loader::loadAndExecute("bin/linker_out.hpx", mem_ptr);
+
+	cpu.set_entry(pc_entry);
+	cpu.print_state();
+
+	// cpu.run();
 
 	return 0;
 

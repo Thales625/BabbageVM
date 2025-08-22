@@ -26,17 +26,17 @@ enum class RelocationMode {
 
 
 struct RelocationTableEntry{
-    int relativeAddress;
+    word_t relativeAddress;
 };
 
 struct HPXHeader {
-    int totalProgramSize;
-    int entryPoint;
-    int totalStackSize;
-    int relocationRequiredByLoader;
+    word_t totalProgramSize;
+    word_t entryPoint;
+    word_t totalStackSize;
+    word_t relocationRequiredByLoader;
 };
 
 struct SymbolTableEntry {
     std::string name;
-    int relativeAddress;
+    word_t relativeAddress;
 };

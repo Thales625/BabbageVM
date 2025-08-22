@@ -10,7 +10,5 @@
 
 class Loader {
 public:
-    Loader() = default;
-    
-    void loadAndExecute(const std::string& hpxFileName, CPU& cpu, Memory<word_t>& memory);
+    static word_t loadAndExecute(const std::string& hpxFileName, Memory<word_t>* memory);
 };

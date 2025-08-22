@@ -16,6 +16,21 @@
 
 Linker::Linker(RelocationMode mode) : currentRelocationMode(mode) {}
 
+//funcao principal
+void Linker::link(const std::vector<std::string>& objFileNames, const std::string& outputFileName) {
+    firstPass(objFileNames);
+
+    #ifdef DEBUG
+    PRINT(totalProgramSize << " | " << entryPoint << "\n";)
+    #endif
+
+    if(totalProgramSize > 0 && entryPoint != -1) {
+        secondPass(outputFileName);
+    } else {
+        reportError("Linking failed.");
+    }
+}
+
 void Linker::firstPass(const std::vector<std::string>& objFileNames){
     int currentLoadAddress = 0;
    
@@ -47,6 +62,15 @@ void Linker::firstPass(const std::vector<std::string>& objFileNames){
         for (auto& line : module.code) {
             PRINT("Line: " << line << "\n")
         }
+
+        std::cout << "\n";
+        PRINT("Module INFO:\n")
+        PRINT("name: " << module.name << "\n")
+        PRINT("size: " << module.size << "\n")
+        PRINT("start address: " << module.startAddress << "\n")
+        PRINT("stack size: " << module.stackSizeReq << "\n")
+
+        std::cout << "\n";
         #endif
 
         loadedModules.push_back(module);
@@ -114,10 +138,9 @@ void Linker::writeFullExecutable(std::ofstream& outputFile) {
         // Relocação Interna
         for (const auto& relEntry : module.relocationTable) {
             if (relEntry.relativeAddress < moduleCode.size()) {
-                 moduleCode[relEntry.relativeAddress] += currentLoadAddress;
+                moduleCode[relEntry.relativeAddress] += currentLoadAddress;
             } else {
-                 reportWarning("Relocation entry out of bounds for module " + module.name +
-                               " at address " + std::to_string(relEntry.relativeAddress));
+                reportWarning("Relocation entry out of bounds for module " + module.name + " at address " + std::to_string(relEntry.relativeAddress));
             }
         }
 
@@ -149,21 +172,6 @@ void Linker::writeRelocatableExecutable(std::ofstream& outputFile) {
     size_t mapSize = globalRelocationMap.size();
     outputFile.write(reinterpret_cast<const char*>(&mapSize), sizeof(mapSize)); // Número de entradas no mapa
     outputFile.write(reinterpret_cast<const char*>(globalRelocationMap.data()), mapSize * sizeof(RelocationTableEntry));
-}
-
-//funcao principal
-void Linker::link(const std::vector<std::string>& objFileNames, const std::string& outputFileName) {
-    firstPass(objFileNames);
-
-    #ifdef DEBUG
-    PRINT(totalProgramSize << " | " << entryPoint << "\n";)
-    #endif
-
-    if(totalProgramSize > 0 && entryPoint != -1) {
-        secondPass(outputFileName);
-    } else {
-        reportError("Linking failed.");
-    }
 }
 
 void Linker::reportError(const std::string& message) {
@@ -216,7 +224,7 @@ void ObjectModule::readFromFile(const std::string& filename) {
 
         switch (currentSection) {
             case HEADER: {
-                std::getline(iss, key);
+                std::getline(iss, key, ' ');
                 if (key == "NAME") iss >> this->name;
                 else if (key == "SIZE") iss >> this->size;
                 else if (key == "START_ADDRESS") iss >> this->startAddress;
@@ -261,6 +269,6 @@ void ObjectModule::readFromFile(const std::string& filename) {
     if (this->size == 0 && !this->code.empty()) {
         this->size = this->code.size();
     } else if (this->size != this->code.size() && this->size > 0) {
-        std::cerr << "Warning: Module size does not match code size." << std::endl;
+        PRINT_WAR("Module size does not match code size.\n")
     }
 }
