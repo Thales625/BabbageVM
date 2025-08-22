@@ -51,14 +51,13 @@ Representação em **hexadecimal** = ```0xOOaA```
 ## Código Mnemônico (Exemplos)
 
 ```asm
-add  %x   ;  acc += reg[x]  ;  registrador direto
-add  [x]  ;  acc += mem[x]  ;  memoria direto
+add %x   ;  acc += reg[x]  ;  registrador direto
+add [x]  ;  acc += mem[x]  ;  memoria direto
 
-add  ,I%x   ;  acc += reg[reg[x]]  ;  registrador indireto
-add  ,I[x]  ;  acc += mem[mem[x]]  ;  memoria indireto
+add I%x   ;  acc += reg[reg[x]]  ;  registrador indireto
+add I[x]  ;  acc += mem[mem[x]]  ;  memoria indireto
 
-add ,Ix  ;  acc += mem[x]  ;  indireto
-add  #x  ;  acc += v       ;  imediato
+add #x  ;  acc = x  ;  imediato
 ```
 
 ---
