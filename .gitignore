@@ -3,10 +3,11 @@
 .vscode/
 
 # vm
-vm/build/
 vm/doc.pdf
 
 # aux
 build/
 bin/
 *.bbg
+
+imgui.ini

@@ -8,65 +8,29 @@
 
 int UI::setup(Memory<word_t>* mem_ptr) {
 	this->mem_ptr = mem_ptr;
-	// Setup SDL: não mexer!
-#ifdef _WIN32
-	::SetProcessDPIAware();
-#endif
-	if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0){
-		printf("Error: %s\n", SDL_GetError());
-		return -1;
-	}
 
-	// From 2.0.18: Enable native IME.
-#ifdef SDL_HINT_IME_SHOW_UI
-	SDL_SetHint(SDL_HINT_IME_SHOW_UI, "1");
-#endif
+	// SDL init...
+    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER);
+    window = SDL_CreateWindow("BabbageVM", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, SDL_WINDOW_SHOWN);
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
-	// Create window with SDL_Renderer graphics context
-	float main_scale = ImGui_ImplSDL2_GetContentScaleForDisplay(0);
-	SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_ALLOW_HIGHDPI);
-	window = SDL_CreateWindow("BabbageVM", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, (int)(1280 * main_scale), (int)(720 * main_scale), window_flags);
-	SDL_Surface* icon = SDL_LoadBMP("assets/bbg.bmp");
-	if(icon){
-		SDL_SetWindowIcon(window, icon);
-		SDL_FreeSurface(icon);
-	}
-	if(window == nullptr){
-		printf("Error: SDL_CreateWindow(): %s\n", SDL_GetError());
-		return -1;
-	}
-	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
-	if(renderer == nullptr){
-		SDL_Log("Error creating SDL_Renderer!");
-		return -1;
-	}
+    // ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    io = &ImGui::GetIO();
 
-	// Setup Dear ImGui context
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	io = ImGui::GetIO();
-	(void)io;
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
+    ImGui::StyleColorsDark();
+    ImGui_ImplSDL2_InitForSDLRenderer(window, renderer);
+    ImGui_ImplSDLRenderer2_Init(renderer);
 
-	// Setup Dear ImGui style
-	ImGui::StyleColorsDark();
-	// ImGui::StyleColorsLight();
-
-	// Setup scaling
-	ImGuiStyle& style = ImGui::GetStyle();
-	style.ScaleAllSizes(main_scale); // Bake a fixed style scale. (until we have a solution for dynamic style scaling, changing this requires resetting Style + calling this again)
-	style.FontScaleDpi = main_scale; // Set initial font scale. (using io.ConfigDpiScaleFonts=true makes this unnecessary. We leave both here for documentation purpose)
-
-	// Setup Platform/Renderer backends
-	ImGui_ImplSDL2_InitForSDLRenderer(window, renderer);
-	ImGui_ImplSDLRenderer2_Init(renderer);
+	return 0;
 }
 
 void UI::run() {
 	std::string dropped_file; // for dropping the input file
 	std::string file_content;
 
-	// Main loop - mexam aq
+	// Main loop
 	while(!done){
 		// Poll and handle events (inputs, window resize, etc.)
 		// You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
@@ -173,7 +137,7 @@ void UI::run() {
 
 			}
 
-			ImGui::Text("avg %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+			ImGui::Text("avg %.3f ms/frame (%.1f FPS)", 1000.0f / io->Framerate, io->Framerate);
 			ImGui::Text("press Q to quit");
 			ImGui::End();
 		}
@@ -272,7 +236,7 @@ void UI::run() {
 
 		// Rendering - não mexer!
 		ImGui::Render();
-		SDL_RenderSetScale(renderer, io.DisplayFramebufferScale.x, io.DisplayFramebufferScale.y);
+		SDL_RenderSetScale(renderer, io->DisplayFramebufferScale.x, io->DisplayFramebufferScale.y);
 		SDL_SetRenderDrawColor(renderer, (Uint8)(clear_color.x * 255), (Uint8)(clear_color.y * 255), (Uint8)(clear_color.z * 255), (Uint8)(clear_color.w * 255));
 		SDL_RenderClear(renderer);
 		ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer);

@@ -10,22 +10,17 @@
 #include <windows.h> // SetProcessDPIAware()
 #endif
 
-#if !SDL_VERSION_ATLEAST(2, 0, 17)
-#error This backend requires SDL 2.0.17+ because of SDL_RenderGeometry() function
-#endif
-
 #include "memory.hpp"
 
 class UI {
 public:
     UI() = default;
-
     int setup(Memory<word_t>* mem_ptr);
     void run();
 private:
-    SDL_Window* window;
-    SDL_Renderer* renderer;
-    ImGuiIO& io;
+    SDL_Window* window = nullptr;
+    SDL_Renderer* renderer = nullptr;
+    ImGuiIO* io = nullptr;
 
     bool done = false;
 	bool file_ready = false;

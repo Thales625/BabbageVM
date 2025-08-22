@@ -10,7 +10,7 @@
 #include "macro.hpp"
 #include "assembler.hpp"
 #include "linker.hpp"
-// #include "ui.hpp"
+#include "ui.hpp"
 
 // #define DEBUG
 // #define BITMAP
@@ -25,7 +25,11 @@ int main(int argc, char* argv[]) {
 	CPU cpu(mem_ptr);
 
 	// UI
-	UI ui();
+	UI ui;
+
+	ui.setup(mem_ptr);
+
+	ui.run();
 
     // std::string filename = argv[1];
 
