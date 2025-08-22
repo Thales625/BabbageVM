@@ -174,6 +174,9 @@ void Linker::writeRelocatableExecutable(std::ofstream& outputFile) {
 //funcao principal
 void Linker::link(const std::vector<std::string>& objFileNames, const std::string& outputFileName) {
     firstPass(objFileNames);
+
+    std::cout << totalProgramSize << " | " << entryPoint << "\n";
+
     if(totalProgramSize > 0 && entryPoint != -1) {
         secondPass(outputFileName);
     } else {

@@ -50,6 +50,8 @@ void Loader::loadAndExecute(const std::string& hpxFileName, CPU& cpu, Memory<wor
         }
     }
 
+    return;
+
     inputFile.close();
 
     memory.load(programCode, 0);

@@ -45,15 +45,6 @@ void Assembler::assemble(const std::string& filename) {
     // }
 
     this->secondPass(infile, "bin/assembler_out");
-
-    /*
-    std::vector<std::string> lines;
-    
-	std::string line;
-	while (std::getline(infile, line)) {
-		lines.push_back(line);
-	}
-    */
 }
 
 bool Assembler::isComment(const std::string& line) const {
@@ -208,11 +199,7 @@ void Assembler::secondPass(std::ifstream& src, const std::string& filename) {
         if(idx < tokens.size()) operand1 = tokens[idx++];
         if(idx < tokens.size()) operand2 = tokens[idx++];
 
-        for (auto& token : tokens) {
-            std::cout << token << " ";
-        }
-
-        std::cout << "label: " << label << " | opcode: " << opcode << " | opd1: " << operand1 << " | opd2: " << operand2 << "\n";
+        // std::cout << "label: " << label << " | opcode: " << opcode << " | opd1: " << operand1 << " | opd2: " << operand2 << "\n";
 
         int instruction = 0;
         int val1 = 0, val2 = 0;
