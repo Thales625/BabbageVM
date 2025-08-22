@@ -9,6 +9,10 @@
 
 #define DEBUG
 
+#define TAG "ASSEMBLER"
+
+#define PRINT(msg) { std::cout << TAG << "> " << msg; }
+
 // opcodes, not finished!
 // TODO: different write instructions for r and i
 std::map<std::string, word_t> opcodeTable = {
@@ -43,9 +47,9 @@ void Assembler::assemble(const std::string& filename) {
 
     // print symbol table
     #ifdef DEBUG
-    std::cout << "Symble table:\n";
+    PRINT("Symble table:\n")
     for (auto& pair : this->symTable) {
-        std::cout << pair.first << ": " << pair.second << "\n";
+        PRINT(pair.first << ": " << pair.second << "\n")
     }
     #endif
 
@@ -85,8 +89,7 @@ void Assembler::firstPass(std::ifstream& src) {
     std::string line;
     int numLine = 0;
 
-    bool foundStart = false;
-    bool foundEnd = false;
+    bool loadingModule = false;
 
     while(getline(src, line)) {
         numLine++;
@@ -134,7 +137,7 @@ void Assembler::firstPass(std::ifstream& src) {
                     symTable[moduleName] = locationCounter;
                 }
 
-                foundStart = true;
+                loadingModule = true;
             }
         }
 
@@ -143,8 +146,8 @@ void Assembler::firstPass(std::ifstream& src) {
             locationCounter += 1;
         }
         else if(opcode == "END") {
-            if(foundStart){
-                foundEnd = true;
+            if(loadingModule){
+                loadingModule = false;
             }else{
                 errors.push_back("linha " + std::to_string(numLine) + ": END sem START associado");
             }
@@ -208,7 +211,7 @@ void Assembler::secondPass(std::ifstream& src, const std::string& filename) {
         if(idx < tokens.size()) operand2 = tokens[idx++];
 
         #ifdef DEBUG
-        std::cout << "label: " << label << " | opcode: " << opcode << " | opd1: " << operand1 << " | opd2: " << operand2 << "\n";
+        PRINT("label: " << label << " | opcode: " << opcode << " | opd1: " << operand1 << " | opd2: " << operand2 << "\n");
         #endif
 
         int instruction = 0;
@@ -230,7 +233,9 @@ void Assembler::secondPass(std::ifstream& src, const std::string& filename) {
             //opcodes the fato, se existir pega da table
             int opcodeBin = opcodeTable[opcode];
 
-            // std::cout << opcode << " -> " << opcodeBin << "\n";
+            #ifdef DEBUG
+            // PRINT(opcode << " -> " << opcodeBin << "\n");
+            #endif
 
             // no operand: just shift opcodeBin to its actual place
             // example: STOP = 0x000B << 8 = 0x0B00

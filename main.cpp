@@ -10,6 +10,7 @@
 #include "macro.hpp"
 #include "assembler.hpp"
 #include "linker.hpp"
+// #include "ui.hpp"
 
 // #define DEBUG
 // #define BITMAP
@@ -19,6 +20,13 @@
 #endif
 
 int main(int argc, char* argv[]) {
+	// SETUP VM
+	Memory<word_t> *mem_ptr = new Memory<word_t>(1024); // 2kB
+	CPU cpu(mem_ptr);
+
+	// UI
+	UI ui();
+
     // std::string filename = argv[1];
 
 	// std::vector<std::string> lines = Macro::ProcessFromFile(filename);
@@ -36,10 +44,6 @@ int main(int argc, char* argv[]) {
 	// }
 
 	return 0;
-
-	Memory<word_t> *mem_ptr = new Memory<word_t>(1024); // 2kB
-
-	CPU cpu(mem_ptr);
 
 	#ifdef BITMAP
 	BitMap bitmap{mem_ptr, 100, 5, 5};

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(MyProject LANGUAGES CXX)
+project(babbage LANGUAGES CXX)
 
 # Define a versão do C++
 set(CMAKE_CXX_STANDARD 17)

@@ -10,12 +10,9 @@
 struct SymbolTableEntry {
     std::string name;
     int relativeAddress;
-    char sign = '+';
 
     void print() const {//Conferir se ta certinho
-        std::cout << "SymbolEntry: " << name 
-                  << " Relative Address: " << relativeAddress 
-                  << " with sign " << sign << std::endl;
+        std::cout << "SymbolEntry: " << name << " Relative Address: " << relativeAddress;
     }
 };
 
