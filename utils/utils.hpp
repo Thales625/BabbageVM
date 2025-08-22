@@ -4,7 +4,6 @@
 #include <iterator>
 #include <string>
 #include <vector>
-#include <iostream>
 #include <map>
 
 #include "vm_types.hpp"
@@ -36,10 +35,6 @@ struct HPXHeader {
 struct SymbolTableEntry {
     std::string name;
     int relativeAddress;
-
-    void print() const {//Conferir se ta certinho
-        std::cout << "SymbolEntry: " << name << " Relative Address: " << relativeAddress;
-    }
 };
 
 class ObjectModule{
