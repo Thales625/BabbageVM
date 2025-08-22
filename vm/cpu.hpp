@@ -4,7 +4,7 @@
 #include "register.hpp"
 #include "regfile.hpp"
 #include "memory.hpp"
-#include "utils.hpp"
+#include "vm_utils.hpp"
 #include "bitmap.hpp"
 
 class CPU {
@@ -14,6 +14,8 @@ public:
 	Memory<word_t> *mem_ptr;
 
 	void reset(); // set registers, memory to zero
+
+	void set_entry(word_t line);
 
 	void run(BitMap &bitmap);
 	void run();

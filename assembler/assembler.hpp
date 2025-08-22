@@ -7,6 +7,7 @@
 class Assembler {
 public:
     void assemble(const std::string& filename);
+    // void assemble(std::vector<std::string> lines);
 
 private:
     std::map<std::string, int> symTable;

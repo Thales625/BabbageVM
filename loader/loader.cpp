@@ -52,12 +52,10 @@ void Loader::loadAndExecute(const std::string& hpxFileName, CPU& cpu, Memory<wor
 
     inputFile.close();
 
-    /*
     memory.load(programCode, 0);
     
     cpu.reset();
-    cpu.pc->write(header.entryPoint);
-    cpu.sp->write(2);
+    cpu.set_entry(header.entryPoint);
     
     std::cout << "Programa carregado. Ponto de entrada: " << header.entryPoint
     << ", Tamanho total: " << header.totalProgramSize
@@ -66,5 +64,4 @@ void Loader::loadAndExecute(const std::string& hpxFileName, CPU& cpu, Memory<wor
     << std::endl;
     
     cpu.run();
-    */
 }

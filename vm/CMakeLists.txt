@@ -15,6 +15,7 @@ set(SOURCES
     main.cpp
     cpu.cpp
     bitmap.cpp
+    loader.cpp
 )
 
 # Inclua diretórios de cabeçalhos (opcional se os headers estiverem no mesmo diretório dos .cpp)

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "memory.hpp"
-#include "utils.hpp"
+#include "vm_utils.hpp"
 
 struct BitMap {
 public:

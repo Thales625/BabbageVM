@@ -29,42 +29,65 @@ std::map<std::string, word_t> opcodeTable = {
     {"COPYM",   19},
 };
 
-bool Assembler::isComment(const std::string& line) const{
+void Assembler::assemble(const std::string& filename) {
+    std::ifstream infile(filename);
+
+    if (!infile) {
+        std::cerr << "Error: Cannot open file '" << filename << "'" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    this->firstPass(infile);
+
+    this->secondPass(infile, "bin/assembler_out");
+
+    /*
+    std::vector<std::string> lines;
+    
+	std::string line;
+	while (std::getline(infile, line)) {
+		lines.push_back(line);
+	}
+    */
+}
+
+bool Assembler::isComment(const std::string& line) const {
     return !line.empty() && line[0] == '*';
 }
 
-bool Assembler::lineTooLong(const std::string& line) const{
+bool Assembler::lineTooLong(const std::string& line) const {
     return line.length() > 80;
 }
 
-uint16_t Assembler::encodeInstruction(uint8_t opcode, uint8_t addrMode1, uint8_t addrMode2) const{
+uint16_t Assembler::encodeInstruction(uint8_t opcode, uint8_t addrMode1, uint8_t addrMode2) const {
     return (opcode << 8) | (addrMode2 << 4) | addrMode1;
 }
 
-std::vector<std::string> Assembler::tokenize(const std::string& line) const{
+std::vector<std::string> Assembler::tokenize(const std::string& line) const {
     std::stringstream ss(line);
     std::string token;
     std::vector<std::string> tokens;
-    while(ss >> token)
+    while(ss >> token) {
         tokens.push_back(token);
+    }
     
     return tokens;
 }
 
-std::string Assembler::toHex4(int val) const{
+std::string Assembler::toHex4(int val) const {
     std::stringstream ss;
     ss << std::hex << std::setw(4) << std::setfill('0') << val;
     return ss.str();
 }
 
-void Assembler::firstPass(std::ifstream& src){
+void Assembler::firstPass(std::ifstream& src) {
     std::string line;
     int numLine = 0;
 
     bool foundStart = false;
     bool foundEnd = false;
 
-    while(getline(src, line)){
+    while(getline(src, line)) {
         numLine++;
         if(lineTooLong(line)){
             errors.push_back("linha " + std::to_string(numLine) + ": linha muito longa.");
@@ -81,7 +104,7 @@ void Assembler::firstPass(std::ifstream& src){
         int idx = 0;
 
         // label check in the first column
-        if(line[0] != ' ' && line[0] != '\t'){
+        if(line[0] != ' ' && line[0] != '\t') {
             label = tokens[idx++];
             if(symTable.count(label)){
                 errors.push_back("linha " + std::to_string(numLine) + ": símbolo redefinido(" + label + ").");
@@ -94,7 +117,7 @@ void Assembler::firstPass(std::ifstream& src){
             opcode = tokens[idx++];
 
         if(opcode == "START"){
-            if(idx < tokens.size()){
+            if(idx < tokens.size()) {
                 std::string startLabel = tokens[idx];
 
                 if(isdigit(startLabel[0])){
@@ -119,7 +142,7 @@ void Assembler::firstPass(std::ifstream& src){
         else if(opcode == "SPACE" || opcode == "CONST" || opcode == "STACK") {
             locationCounter += 1;
         }
-        else if(opcode == "END"){
+        else if(opcode == "END") {
             if(foundStart){
                 foundEnd = true;
             }else{
@@ -129,13 +152,13 @@ void Assembler::firstPass(std::ifstream& src){
         }
         
         // if its not a directive, its a normal instruction -> 1 word
-        else{
+        else {
             locationCounter += 1;
         }
     }
 }
 
-void Assembler::secondPass(std::ifstream& src, const std::string& filename){
+void Assembler::secondPass(std::ifstream& src, const std::string& filename) {
     std::string line;
     int numLine = 0;
     int pc = startAddress;
@@ -146,7 +169,7 @@ void Assembler::secondPass(std::ifstream& src, const std::string& filename){
     src.clear();		//clear EOF flags
     src.seekg(0);		//move cursor to the start
 
-    while(getline(src, line)){
+    while(getline(src, line)) {
         numLine++;
 
         if(isComment(line)){
@@ -184,14 +207,16 @@ void Assembler::secondPass(std::ifstream& src, const std::string& filename){
             }catch(...){
                 errors.push_back("linha " + std::to_string(numLine) + ": valor CONST inválido.");
             }
-        }else if(opcode == "SPACE"){
+        }else if(opcode == "SPACE") {
             instruction = 0;
         }else if(opcode == "START" || opcode == "END" || opcode == "STACK" || opcode == "INTDEF" || opcode == "INTUSE"){
             lst << "      " << "      " << "   " << line << std::endl;
             continue;
-        }else if(opcodeTable.count(opcode)){
+        }else if(opcodeTable.count(opcode)) {
             //opcodes the fato, se existir pega da table
             int opcodeBin = opcodeTable[opcode];
+
+            // std::cout << opcode << " -> " << opcodeBin << "\n";
 
             // no operand: just shift opcodeBin to its actual place
             // example: STOP = 0x000B << 8 = 0x0B00
@@ -215,9 +240,9 @@ void Assembler::secondPass(std::ifstream& src, const std::string& filename){
                     }
 
                     //resolve operand address (direct or previously stored in symTable)
-                    if(isdigit(op[0])){
+                    if(isdigit(op[0])) {
                         val = std::stoi(op);
-                    }else if(symTable.count(op)){
+                    }else if(symTable.count(op)) {
                         val = symTable[op];
                     }else{
                         errors.push_back("linha " + std::to_string(numLine) + ": simbolo nao definido (" + op + ")");
@@ -250,7 +275,7 @@ void Assembler::secondPass(std::ifstream& src, const std::string& filename){
 
     // error report
     lst << std::endl;
-    if(errors.empty()){
+    if(errors.empty()) {
         lst << "Nenhum erro detectado." << std::endl;
     }else{
         lst << "Foram encontrados os seguintes erros:" << std::endl;

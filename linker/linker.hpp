@@ -38,6 +38,4 @@ private:
 
     void writeFullExecutable(std::ofstream& outputFile);
     void writeRelocatableExecutable(std::ofstream& outputFile);
-
-    void link(const std::vector<std::string>& objFileNames, const std::string& outputFileName);
 };

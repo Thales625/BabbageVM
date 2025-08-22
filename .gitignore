@@ -1,15 +1,12 @@
 # *
 */.vscode/
 .vscode/
-*/main
-*/main.exe
-*/*.bbg
 
 # vm
 vm/build/
-vm/.vscode/
 vm/doc.pdf
 
-# macro
-macro/*.bbg
-macro/*.exe
+# aux
+build/
+bin/
+*.bbg

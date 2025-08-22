@@ -38,6 +38,30 @@ Address
 a = MEM indirect
 
 # Mnemonic code
-add $r1   # acc += $r1        # direct
+add  $r1  # acc += $r1        # direct
 add ($r1) # acc += mem[$r1]   # indirect
 add imm   # acc += immediate  # immediate
+
+
+OPCODE table
+-------------------------
+
+16: ret    ()
+11: stop   ()
+
+02: add    (opd_1)
+00: br     (opd_1)
+05: brneg  (opd_1)
+01: brpos  (opd_1)
+04: brzero (opd_1)
+15: call   (opd_1)
+10: divide (opd_1)
+03: load   (opd_1)
+14: mult   (opd_1)
+17: push   (opd_1)
+07: store  (opd_1)
+06: sub    (opd_1)
+18: pop    (opd_1)
+
+13: copy_r (opd_1, opd_2)
+19: copy_m (opd_1, opd_2)

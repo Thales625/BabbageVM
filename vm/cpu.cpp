@@ -33,6 +33,10 @@ void CPU::reset() {
 	this->running = false;
 }
 
+void CPU::set_entry(word_t line) {
+	this->pc->write(line);
+}
+
 void CPU::print_state() const {
 	std::cout << "CPU STATE\n";
 	std::cout << "\tacc = 0b" << this->acc->to_string() << " (" << this->acc->read() << ")\n";
