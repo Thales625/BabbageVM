@@ -1,4 +1,7 @@
-#include "../include/Loader.h"
+#include "loader.hpp"
+
+#include "linkerutils.hpp"
+
 #include <vector> 
 #include <iostream>
 
@@ -33,8 +36,8 @@ void Loader::loadAndExecute(const std::string& hpxFileName, CPU& cpu, Memory<wor
         // Carregador Relocador
         size_t mapSize;
         inputFile.read(reinterpret_cast<char*>(&mapSize), sizeof(mapSize));
-        std::vector<RelocationEntry> relocationMap(mapSize);
-        inputFile.read(reinterpret_cast<char*>(relocationMap.data()), mapSize * sizeof(RelocationEntry));
+        std::vector<RelocationTableEntry> relocationMap(mapSize);
+        inputFile.read(reinterpret_cast<char*>(relocationMap.data()), mapSize * sizeof(RelocationTableEntry));
 
         // Relocação
         std::cout << "Carregador: Relocacao necessaria. Aplicando...\n";
@@ -49,17 +52,19 @@ void Loader::loadAndExecute(const std::string& hpxFileName, CPU& cpu, Memory<wor
 
     inputFile.close();
 
+    /*
     memory.load(programCode, 0);
-
+    
     cpu.reset();
     cpu.pc->write(header.entryPoint);
     cpu.sp->write(2);
-
+    
     std::cout << "Programa carregado. Ponto de entrada: " << header.entryPoint
-              << ", Tamanho total: " << header.totalProgramSize
-              << ", Tamanho da pilha: " << header.totalStackSize
-              << (header.relocationRequiredByLoader ? " (Relocacao feita pelo carregador)" : " (Relocacao feita pelo ligador)")
-              << std::endl;
-
+    << ", Tamanho total: " << header.totalProgramSize
+    << ", Tamanho da pilha: " << header.totalStackSize
+    << (header.relocationRequiredByLoader ? " (Relocacao feita pelo carregador)" : " (Relocacao feita pelo ligador)")
+    << std::endl;
+    
     cpu.run();
+    */
 }

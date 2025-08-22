@@ -1,8 +1,11 @@
+#pragma once
+
+#include "linkerutils.hpp"
+#include "vm_types.hpp"
+
 #include <string>
 #include <vector>
 #include <map>
-#include "linkerutils.hpp"
-#include "vm_types.hpp"
 
 enum class RelocationMode {
     FullLinkerRelocation,    // Carregador Absoluto
@@ -10,26 +13,31 @@ enum class RelocationMode {
 };
 
 class Linker{
-    public:
-        Linker(RelocationMode mode = RelocationMode::FullLinkerRelocation); // Construtor com modo padrão
+public:
+    Linker(RelocationMode mode = RelocationMode::FullLinkerRelocation); // Construtor com modo padrão
 
-        //funcao para as duas passagens
-        void link(const std::vector<std::string>& objFileNames, const std::string& outputFileName);
+    //funcao para as duas passagens
+    void link(const std::vector<std::string>& objFileNames, const std::string& outputFileName);
 
-    private:
-        GlobalSymbolTable globalSymbolTable;
-        std::vector<objectModule> loadedModules;
-        int totalProgramSize = 0;
-        int entryPoint = -1;
-        int totalStackReq = 0;
-        RelocationMode currentRelocationMode;
+private:
+    GlobalSymbolTable globalSymbolTable;
+    std::vector<ObjectModule> loadedModules;
+    int totalProgramSize = 0;
+    int entryPoint = -1;
+    int totalStackReq = 0;
+    RelocationMode currentRelocationMode;
 
-        std::vector<RelocationEntry> globalRelocationMap;// Construir mapa se parcial
-        //Passagens
-        void firstPass(const std::vector<std::string>& objFileNames);
-        void secondPass(const std::string& outputFileName);
+    std::vector<RelocationTableEntry> globalRelocationMap;// Construir mapa se parcial
+    //Passagens
+    void firstPass(const std::vector<std::string>& objFileNames);
+    void secondPass(const std::string& outputFileName);
 
-        //Tratamento de erros
-        void reportError( const std::string& message) const;
-        void reportWarning(const std::string& message) const;
-    };
+    //Tratamento de erros
+    void reportError( const std::string& message) const;
+    void reportWarning(const std::string& message) const;
+
+    void writeFullExecutable(std::ofstream& outputFile);
+    void writeRelocatableExecutable(std::ofstream& outputFile);
+
+    void link(const std::vector<std::string>& objFileNames, const std::string& outputFileName);
+};

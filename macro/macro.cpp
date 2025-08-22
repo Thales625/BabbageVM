@@ -1,9 +1,12 @@
 #include "macro.hpp"
 
-#include <string>
 #include <vector>
 #include <sstream>
 #include <algorithm>
+
+#include <string>
+#include <iostream>
+#include <fstream>
 
 namespace {
     struct macro_t {
@@ -125,5 +128,23 @@ namespace Macro {
         }
 
         return n_lines;
+    }
+
+	std::vector<std::string> ProcessFromFile(std::string path) {
+        std::ifstream infile(path);
+
+        if (!infile) {
+            std::cerr << "Error: Cannot open file '" << path << "'" << std::endl;
+            exit(EXIT_FAILURE);
+        }
+
+        std::vector<std::string> lines;
+
+    	std::string line;
+    	while (std::getline(infile, line)) {
+    		lines.push_back(line);
+    	}
+
+        return Macro::process(lines);
     }
 }

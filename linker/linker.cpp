@@ -32,11 +32,11 @@ void Linker::firstPass(const std::vector<std::string>& objFileNames){
             return;
         }
 
-        loadesModules.push_back(module);
+        loadedModules.push_back(module);
 
         //processar a tabela de definicoes para construir a tabela global de simbolos
         for (const auto& symbol : module.definitionTable){
-            int absoluteAddress = currentLoadAddress + symbol.relative_address;
+            int absoluteAddress = currentLoadAddress + symbol.relativeAddress;
 
             if (globalSymbolTable.count(symbol.name)) {
                 reportError("Duplicado: " + symbol.name);
@@ -72,19 +72,21 @@ void Linker::secondPass(const std::string& outputFileName) {
     HPXHeader header;
     header.totalProgramSize = totalProgramSize;
     header.entryPoint = entryPoint;
-    header.totalStackSize = totalStackRequired;
+    header.totalStackSize = this->totalStackReq;
     header.relocationRequiredByLoader = (currentRelocationMode == RelocationMode::PartialLinkerRelocation);
 
     outputFile.write(reinterpret_cast<const char*>(&header), sizeof(HPXHeader));
 
     if (currentRelocationMode == RelocationMode::FullLinkerRelocation) {
-        writeFullExecutable(outputFile);
+        this->writeFullExecutable(outputFile);
     } else {
-        writeRelocatableExecutable(outputFile);
+        this->writeRelocatableExecutable(outputFile);
     }
 
     outputFile.close();
     std::cout << "Ligacao concluida com sucesso. Executavel gerado: " << outputFileName << std::endl;
+}
+
 // Novo método: Ligador que faz a relocação completa
 void Linker::writeFullExecutable(std::ofstream& outputFile) {
     int currentLoadAddress = 0; // Endereço de carga atual para o módulo no executável final
@@ -110,8 +112,7 @@ void Linker::writeFullExecutable(std::ofstream& outputFile) {
                 if (useEntry.relativeAddress < moduleCode.size()) {
                     moduleCode[useEntry.relativeAddress] = absoluteTargetAddress;
                 } else {
-                    reportWarning("Use entry for symbol " + useEntry.name + " out of bounds for module " + module.name +
-                                  " at address " + std::to_string(useEntry.relativeAddress));
+                    reportWarning("Use entry for symbol " + useEntry.name + " out of bounds for module " + module.name + " at address " + std::to_string(useEntry.relativeAddress));
                 }
             } else {
                 reportError("Símbolo global nao definido: " + useEntry.name +
@@ -154,7 +155,7 @@ void Linker::writeRelocatableExecutable(std::ofstream& outputFile) {
         }
 
         for (const auto& relEntry : module.relocationMap) {
-            RelocationEntry globalEntry = relEntry;
+            RelocationTableEntry globalEntry = relEntry;
             globalEntry.relativeAddress += currentLoadAddress; // Ajustar o offset para ser global
             globalRelocationMap.push_back(globalEntry);
         }
@@ -167,11 +168,11 @@ void Linker::writeRelocatableExecutable(std::ofstream& outputFile) {
     // Mapa de Relocação Global
     size_t mapSize = globalRelocationMap.size();
     outputFile.write(reinterpret_cast<const char*>(&mapSize), sizeof(mapSize)); // Número de entradas no mapa
-    outputFile.write(reinterpret_cast<const char*>(globalRelocationMap.data()), mapSize * sizeof(RelocationEntry));
+    outputFile.write(reinterpret_cast<const char*>(globalRelocationMap.data()), mapSize * sizeof(RelocationTableEntry));
 }
 
 //funcao principal
-void Linker::link(const std::vector<std::strinh>& objFileNames, const std::string& outputFileName){
+void Linker::link(const std::vector<std::string>& objFileNames, const std::string& outputFileName) {
     firstPass(objFileNames);
     if(totalProgramSize > 0 && entryPoint != -1) {
         secondPass(outputFileName);
@@ -179,6 +180,3 @@ void Linker::link(const std::vector<std::strinh>& objFileNames, const std::strin
         reportError("Linking failed.");
     }
 }
-
-
-

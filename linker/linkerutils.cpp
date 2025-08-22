@@ -1,5 +1,6 @@
-#include <linkerutils.hpp>
-#include <fstreams>
+#include "linkerutils.hpp"
+
+#include <fstream>
 #include <sstream>
 #include <algorithm>
 
@@ -10,14 +11,14 @@ int hexStringtoint(const std::string& hexStr){
     return 0; 
 }
 
-void ObjectModule::readFromFile(const std::string& filename){
-    sdt::ifstream file(filename);
+void ObjectModule::readFromFile(const std::string& filename) {
+    std::ifstream file(filename);
     if (!file.is_open()) {
         std::cerr << "Error opening file: " << filename << std::endl;
         throw std::runtime_error("File opening error");
     }
 
-    sdt::string line;
+    std::string line;
     enum Section {NONE, HEADER, CODE, DEFS, USES, RELOCS};
     Section currentSection = NONE;
 
@@ -55,7 +56,7 @@ void ObjectModule::readFromFile(const std::string& filename){
                 break;
             }
             case CODE:{
-                sdt::string hexValStr;
+                std::string hexValStr;
                 iss >> hexValStr;
                 size_t commentPos = hexValStr.find(';');//tratamento de comantario
                 if (commentPos != std::string::npos){
@@ -95,7 +96,7 @@ void ObjectModule::readFromFile(const std::string& filename){
     //verificacao de precaucao
     if (this->size == 0 && !this->code.empty()) {
         this->size = this->code.size();
-    } else if (this->size != this->code.size && this->size > 0) {
+    } else if (this->size != this->code.size() && this->size > 0) {
         std::cerr << "Warning: Module size does not match code size." << std::endl;
     }
 }
