@@ -12,7 +12,13 @@ int UI::setup(Memory<word_t>* mem_ptr) {
 	// SDL init...
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER);
     window = SDL_CreateWindow("BabbageVM", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, SDL_WINDOW_SHOWN);
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+	SDL_Surface* icon = SDL_LoadBMP("ui/assets/bbg.bmp");
+	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
+
+	if(icon){
+		SDL_SetWindowIcon(window, icon);
+		SDL_FreeSurface(icon);
+	}
 
     // ImGui context
     IMGUI_CHECKVERSION();
